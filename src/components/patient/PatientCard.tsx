@@ -3,6 +3,8 @@ import { m } from "motion/react";
 import EMBar from "@/components/shared/EMBar.tsx";
 import CharacterAvatar from "@/components/shared/CharacterAvatar.tsx";
 import { ISSUE_LABELS } from "@/lib/engine/patient.ts";
+import { useGameStore } from "@/store/gameStore.ts";
+import { AP_COST } from "@/lib/constants.ts";
 import type { Patient } from "@/types/index.ts";
 
 const ISSUE_COLORS: Record<string, string> = {
@@ -32,8 +34,11 @@ interface PatientCardProps {
 
 export default function PatientCard({ patient, onTreat, onEncourage }: PatientCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const ap = useGameStore((s) => s.ap);
   const borderColor = getCardBorderColor(patient.em);
   const isCrisis = patient.em >= 80;
+  const canTreat = ap >= AP_COST.treat;
+  const canEncourage = ap >= AP_COST.encourage;
 
   return (
     <m.div
@@ -60,16 +65,32 @@ export default function PatientCard({ patient, onTreat, onEncourage }: PatientCa
             </div>
             <div className="flex gap-1.5 shrink-0 ml-2">
               <button
-                onClick={() => onEncourage(patient.id)}
-                className="text-xs px-2.5 py-1.5 bg-teal-700 text-white font-medium rounded-lg hover:bg-teal-600 transition-colors"
-                title="격려하여 EM을 약간 줄입니다 (AP 1)"
+                onClick={() => canEncourage && onEncourage(patient.id)}
+                disabled={!canEncourage}
+                className={`text-xs px-2.5 py-1.5 font-medium rounded-lg transition-colors ${
+                  canEncourage
+                    ? "bg-teal-700 text-white hover:bg-teal-600"
+                    : "bg-surface-disabled text-theme-disabled cursor-not-allowed"
+                }`}
+                title={canEncourage ? "격려하여 EM을 약간 줄입니다 (AP 1)" : "AP가 부족합니다"}
               >
                 격려하기
               </button>
               <button
-                onClick={() => onTreat(patient.id)}
-                className="text-sm px-3 py-1.5 bg-floor-counseling text-white font-medium rounded-lg hover:bg-sky-600 transition-colors shadow-sm"
-                title="상담사와 치료실을 선택하여 상담합니다 (AP 2)"
+                onClick={() => {
+                  if (canTreat) {
+                    onTreat(patient.id);
+                  } else if (canEncourage) {
+                    useGameStore.getState().addNotification("AP가 부족하여 상담할 수 없습니다. 격려하기만 가능합니다.", "warning");
+                  }
+                }}
+                disabled={!canTreat}
+                className={`text-sm px-3 py-1.5 font-medium rounded-lg transition-colors shadow-sm ${
+                  canTreat
+                    ? "bg-floor-counseling text-white hover:bg-sky-600"
+                    : "bg-surface-disabled text-theme-disabled cursor-not-allowed"
+                }`}
+                title={canTreat ? "상담사와 치료실을 선택하여 상담합니다 (AP 2)" : "AP가 부족합니다 (AP 2 필요)"}
               >
                 상담하기
               </button>
