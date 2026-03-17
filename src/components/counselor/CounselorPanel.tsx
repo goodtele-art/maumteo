@@ -99,13 +99,13 @@ function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: Coun
           <div className="flex gap-1.5">
             <button
               onClick={onFire}
-              className="text-xs px-2 py-0.5 bg-red-900/40 text-red-400 rounded hover:bg-red-900/60 transition-colors"
+              className="text-xs px-3 py-1.5 bg-red-900/40 text-red-400 rounded-lg hover:bg-red-900/60 transition-colors"
             >
               확인
             </button>
             <button
               onClick={onConfirmToggle}
-              className="text-xs px-2 py-0.5 bg-surface-card-hover/50 text-theme-tertiary rounded hover:bg-surface-card-hover transition-colors"
+              className="text-xs px-3 py-1.5 bg-surface-card-hover/50 text-theme-tertiary rounded-lg hover:bg-surface-card-hover transition-colors"
             >
               취소
             </button>
@@ -113,7 +113,7 @@ function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: Coun
         ) : (
           <button
             onClick={onConfirmToggle}
-            className="text-xs px-2 py-0.5 text-theme-tertiary hover:text-red-400 transition-colors"
+            className="text-xs px-3 py-1.5 text-theme-tertiary hover:text-red-400 transition-colors"
           >
             해고
           </button>

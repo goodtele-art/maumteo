@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* ── Safe Area (노치/다이나믹아일랜드 대응) ── */
+html {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 @theme {
   --color-floor-basement: #9f1239;
   --color-floor-diagnostic: #b45309;

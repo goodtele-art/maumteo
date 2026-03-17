@@ -49,7 +49,7 @@ export default function FacilitySlot({
             {canUpgrade && onUpgrade && (
               <button
                 onClick={() => onUpgrade(facility.id)}
-                className="shrink-0 text-xs px-2 py-0.5 bg-amber-900/30 text-amber-400 rounded hover:bg-amber-900/50 transition-colors"
+                className="shrink-0 text-xs px-3 py-1.5 bg-amber-900/30 text-amber-400 rounded-lg hover:bg-amber-900/50 transition-colors"
                 title={`업그레이드 비용: ${Math.ceil(facility.buildCost * 0.5 * facility.level)}골드`}
               >
                 ⬆

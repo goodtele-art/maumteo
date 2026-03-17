@@ -97,7 +97,7 @@ export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, on
                 {floorPatients.length > 1 && (
                   <button
                     onClick={cycleSortMode}
-                    className="text-xs px-2 py-0.5 rounded bg-surface-card/60 text-theme-tertiary hover:text-theme-primary transition-colors"
+                    className="text-xs px-3 py-1.5 rounded-lg bg-surface-card/60 text-theme-tertiary hover:text-theme-primary transition-colors"
                     title="정렬 기준 변경"
                   >
                     ↕ {SORT_LABELS[sortMode]}

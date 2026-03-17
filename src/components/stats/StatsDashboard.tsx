@@ -86,7 +86,7 @@ export default function StatsDashboard() {
                   <button
                     key={t}
                     onClick={() => setTab(t)}
-                    className={`text-xs px-2 py-1 rounded transition-colors ${
+                    className={`text-xs px-3 py-1.5 rounded-lg transition-colors ${
                       tab === t
                         ? "bg-sky-900/40 text-sky-300"
                         : "text-theme-tertiary hover:text-theme-primary"
