@@ -1,0 +1,240 @@
+@import "tailwindcss";
+
+@theme {
+  --color-floor-basement: #9f1239;
+  --color-floor-diagnostic: #b45309;
+  --color-floor-counseling: #0369a1;
+  --color-floor-insight: #7c3aed;
+  --color-floor-garden: #0d9488;
+
+  --color-em-high: #ef4444;
+  --color-em-low: #3b82f6;
+}
+
+/* ── 테마 토큰 (다크 기본 = 등대센터) ── */
+:root {
+  --surface-base: #030712;
+  --surface-raised: rgba(17, 24, 39, 0.8);
+  --surface-card: #1f2937;
+  --surface-card-hover: #374151;
+  --surface-disabled: #111827;
+  --surface-badge: #374151;
+
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --text-disabled: #6b7280;
+  --text-faint: #4b5563;
+
+  --border-default: rgba(31, 41, 55, 0.5);
+  --border-subtle: rgba(55, 65, 81, 0.5);
+
+  --glass-bg-start: rgba(255, 255, 255, 0.06);
+  --glass-bg-end: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-strong-start: rgba(255, 255, 255, 0.1);
+  --glass-strong-end: rgba(255, 255, 255, 0.04);
+  --glass-strong-border: rgba(255, 255, 255, 0.12);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --hover-shadow: rgba(0, 0, 0, 0.25);
+  --inset-highlight: rgba(255, 255, 255, 0.05);
+  --slot-empty-start: rgba(255, 255, 255, 0.02);
+  --slot-empty-hover: rgba(255, 255, 255, 0.04);
+}
+
+/* ── 햇살센터 (라이트 테마) ── */
+[data-theme="light"] {
+  --surface-base: #FFF5E6;
+  --surface-raised: rgba(238, 192, 108, 0.45);
+  --surface-card: #FFF0D6;
+  --surface-card-hover: #EEC06C;
+  --surface-disabled: #E8DCC8;
+  --surface-badge: #B6C296;
+
+  --text-primary: #2d1b00;
+  --text-secondary: #4a3520;
+  --text-tertiary: #6b5030;
+  --text-disabled: #8a7555;
+  --text-faint: #9a8a70;
+
+  --border-default: rgba(228, 155, 82, 0.3);
+  --border-subtle: rgba(158, 174, 114, 0.3);
+
+  --glass-bg-start: rgba(255, 255, 255, 0.55);
+  --glass-bg-end: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(180, 130, 60, 0.2);
+  --glass-strong-start: rgba(255, 255, 255, 0.65);
+  --glass-strong-end: rgba(255, 255, 255, 0.35);
+  --glass-strong-border: rgba(180, 130, 60, 0.3);
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+  --hover-shadow: rgba(120, 80, 20, 0.12);
+  --inset-highlight: rgba(255, 255, 255, 0.3);
+  --slot-empty-start: rgba(180, 130, 60, 0.1);
+  --slot-empty-hover: rgba(180, 130, 60, 0.2);
+}
+
+/* ── 시맨틱 유틸리티 클래스 ── */
+@utility bg-surface-base {
+  background-color: var(--surface-base);
+}
+@utility bg-surface-raised {
+  background-color: var(--surface-raised);
+}
+@utility bg-surface-card {
+  background-color: var(--surface-card);
+}
+@utility bg-surface-card-hover {
+  background-color: var(--surface-card-hover);
+}
+@utility bg-surface-disabled {
+  background-color: var(--surface-disabled);
+}
+@utility bg-surface-badge {
+  background-color: var(--surface-badge);
+}
+@utility text-theme-primary {
+  color: var(--text-primary);
+}
+@utility text-theme-secondary {
+  color: var(--text-secondary);
+}
+@utility text-theme-tertiary {
+  color: var(--text-tertiary);
+}
+@utility text-theme-disabled {
+  color: var(--text-disabled);
+}
+@utility text-theme-faint {
+  color: var(--text-faint);
+}
+@utility border-theme-default {
+  border-color: var(--border-default);
+}
+@utility border-theme-subtle {
+  border-color: var(--border-subtle);
+}
+
+/* ── 글래스모피즘 카드 ── */
+.glass-card {
+  background: linear-gradient(
+    135deg,
+    var(--glass-bg-start) 0%,
+    var(--glass-bg-end) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-card-strong {
+  background: linear-gradient(
+    135deg,
+    var(--glass-strong-start) 0%,
+    var(--glass-strong-end) 100%
+  );
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--glass-strong-border);
+}
+
+/* ── 층별 글로우 ── */
+.floor-glow-basement {
+  box-shadow: 0 0 20px rgba(159, 18, 57, 0.25), inset 0 1px 0 var(--inset-highlight);
+}
+.floor-glow-diagnostic {
+  box-shadow: 0 0 20px rgba(180, 83, 9, 0.25), inset 0 1px 0 var(--inset-highlight);
+}
+.floor-glow-counseling {
+  box-shadow: 0 0 20px rgba(3, 105, 161, 0.25), inset 0 1px 0 var(--inset-highlight);
+}
+.floor-glow-insight {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.25), inset 0 1px 0 var(--inset-highlight);
+}
+.floor-glow-garden {
+  box-shadow: 0 0 20px rgba(13, 148, 136, 0.25), inset 0 1px 0 var(--inset-highlight);
+}
+
+/* ── 위기 펄스 (3초 주기) ── */
+@keyframes crisis-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50% { opacity: 0.85; box-shadow: 0 0 16px 4px rgba(239, 68, 68, 0.3); }
+}
+.crisis-pulse {
+  animation: crisis-pulse 3s ease-in-out infinite;
+}
+
+/* ── 사이드바 선택 글로우 ── */
+.sidebar-glow {
+  box-shadow: inset 3px 0 8px -2px var(--glow-color, rgba(255, 255, 255, 0.15));
+}
+
+/* ── 카와이 보정 ── */
+.glass-card, .glass-card-strong {
+  border-radius: 1rem;
+}
+
+/* ── 카드 호버 리프트 ── */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 0.75rem;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--hover-shadow), 0 0 0 1px var(--glass-border);
+}
+
+/* ── 시설 슬롯 빈칸 그라데이션 보더 ── */
+.slot-empty {
+  background: linear-gradient(
+    135deg,
+    var(--slot-empty-start) 0%,
+    transparent 100%
+  );
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.slot-empty:hover {
+  background: linear-gradient(
+    135deg,
+    var(--slot-empty-hover) 0%,
+    transparent 100%
+  );
+}
+
+/* ── 이벤트 플래시 ── */
+@keyframes flash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.animate-flash {
+  animation: flash 0.5s ease-out forwards;
+}
+
+/* ── 화면 셰이크 (위기 이벤트) ── */
+@keyframes screen-shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-3px); }
+  30% { transform: translateX(3px); }
+  50% { transform: translateX(-2px); }
+  70% { transform: translateX(2px); }
+  90% { transform: translateX(-1px); }
+}
+.screen-shake {
+  animation: screen-shake 0.4s ease-out;
+}
+
+/* ── 테마 전환 트랜지션 ── */
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

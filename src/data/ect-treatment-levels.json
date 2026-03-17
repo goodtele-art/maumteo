@@ -1,0 +1,249 @@
+{
+  "source": "effectivechildtherapy.org (Society of Clinical Child & Adolescent Psychology)",
+  "retrievedDate": "2026-03-16",
+  "levelDefinitions": {
+    "1": "Works Well — 잘 작동함",
+    "2": "Works — 작동함",
+    "3": "Might Work — 효과 가능성 있음",
+    "4": "Experimental — 실험적",
+    "5": "Tested and Does Not Work — 검증 결과 효과 없음"
+  },
+  "disorders": [
+    {
+      "id": "adhd",
+      "name": "ADHD",
+      "nameKo": "주의력결핍 과잉행동장애",
+      "treatments": {
+        "1": ["Behavioral interventions (BPT, BCM, BPI)", "Organization training"],
+        "2": ["Combined training interventions"],
+        "3": ["Neurofeedback training"],
+        "4": ["Cognitive training"],
+        "5": ["Social skills training"]
+      }
+    },
+    {
+      "id": "anorexia",
+      "name": "Anorexia Nervosa (Adolescent)",
+      "nameKo": "신경성 식욕부진증",
+      "treatments": {
+        "1": ["Family therapy–behavior (Family-Based Treatment/Maudsley)"],
+        "2": ["Family therapy–systemic", "Insight-oriented psychotherapy", "Adolescent-focused therapy", "Parent-focused therapy"],
+        "3": ["Guided self-help/telephone-assisted (ECHO)", "FBT + cognitive remediation training", "FBT + art therapy"],
+        "4": ["CBT–broad (individual)", "Cognitive remediation training", "FBT–intensive parental coaching", "DBT skills group", "FBT + DBT skills", "FBT–guided self-help for waitlist"],
+        "5": ["Outpatient family therapy with/without family meal"]
+      }
+    },
+    {
+      "id": "bulimia",
+      "name": "Bulimia Nervosa (Adolescent)",
+      "nameKo": "신경성 폭식증",
+      "treatments": {
+        "1": ["Family-Based Treatment–Bulimia Nervosa"],
+        "2": [],
+        "3": ["CBT–guided self-help (individual)"],
+        "4": ["CBT (individual)", "Supportive psychotherapy"],
+        "5": ["Guided self-help–waitlist"]
+      }
+    },
+    {
+      "id": "binge_eating",
+      "name": "Binge Eating Disorder",
+      "nameKo": "폭식장애",
+      "treatments": {
+        "1": [],
+        "2": [],
+        "3": ["CBT–internet facilitated", "CBT", "Family-Based Treatment"],
+        "4": ["IPT (individual)", "DBT (individual and family)"],
+        "5": []
+      }
+    },
+    {
+      "id": "arfid",
+      "name": "Avoidant/Restrictive Food Intake Disorder",
+      "nameKo": "회피/제한적 음식섭취장애",
+      "treatments": {
+        "1": [],
+        "2": [],
+        "3": ["Family-Based Treatment"],
+        "4": ["CBT"],
+        "5": []
+      }
+    },
+    {
+      "id": "anxiety",
+      "name": "Anxiety (Children & Adolescents)",
+      "nameKo": "불안장애",
+      "treatments": {
+        "1": ["CBT", "Exposure", "Modeling", "CBT with parents", "Education/Psychoeducation", "CBT with medication", "Family-based CBT (young children)"],
+        "2": ["Family psychoeducation", "Relaxation + assertiveness training", "Attention control", "CBT for child and parent", "Cultural storytelling", "Hypnosis", "Stress inoculation", "Group Parent CBT (young children)"],
+        "3": ["Contingency management", "Group therapy"],
+        "4": ["Biofeedback", "CBT with parents only", "Play therapy", "Psychodynamic", "Rational emotive therapy", "Social skills"],
+        "5": ["Assessment/monitoring only", "Attachment therapy", "Client-centered therapy", "EMDR", "Peer pairing", "Psychoeducation (alone)", "Relationship counseling", "Teacher psychotherapy", "Relaxation training (young children)"]
+      }
+    },
+    {
+      "id": "autism",
+      "name": "Autism Spectrum Disorder",
+      "nameKo": "자폐스펙트럼장애",
+      "treatments": {
+        "1": ["Individual Comprehensive ABA", "Teacher-Implemented Focused ABA + DSP"],
+        "2": ["Focused ABA for augmentative/alternative communication", "Focused ABA + DSP"],
+        "3": ["Comprehensive ABA + DSP", "Comprehensive ABA Classrooms"],
+        "4": ["Comprehensive ABA + DSP Classrooms", "Focused ABA + DSP Parent Training"],
+        "5": []
+      }
+    },
+    {
+      "id": "bipolar",
+      "name": "Bipolar Spectrum Disorders",
+      "nameKo": "양극성장애",
+      "treatments": {
+        "1": ["Family skill building + psychoeducation"],
+        "2": ["Dialectical Behavior Therapy (DBT)"],
+        "3": ["Omega-3 fatty acids"],
+        "4": ["Interpersonal and Social Rhythm Therapy (IPSRT)", "Multi-nutrient supplements"],
+        "5": []
+      }
+    },
+    {
+      "id": "bfrd",
+      "name": "Body-Focused Repetitive Disorders",
+      "nameKo": "신체집중반복행동장애",
+      "treatments": {
+        "1": [],
+        "2": [],
+        "3": ["Behavior Therapy–Habit Reversal Training (HRT) for Trichotillomania"],
+        "4": ["Individual CBT for Trichotillomania", "Behavior Therapy (HRT) for Excoriation/Nail Biting", "Multicomponent CBT for Cheek Biting", "Behavior Therapy (HRT) for Thumb Sucking"],
+        "5": ["Individual massed negative practice for Trichotillomania"]
+      }
+    },
+    {
+      "id": "depression",
+      "name": "Depression",
+      "nameKo": "우울장애",
+      "treatments": {
+        "1": ["CBT (overall, individual, group) — adolescents", "Interpersonal Psychotherapy (IPT, individual) — adolescents"],
+        "2": ["Group IPT — adolescents"],
+        "3": ["CBT (comprehensive, group, technology-assisted) — children", "Behavior therapy — children", "Bibliotherapy CBT — adolescents", "Family-based intervention — adolescents"],
+        "4": ["Individual CBT — children", "Psychodynamic therapy — children", "Family-based intervention — children", "Technology-assisted CBT — adolescents"],
+        "5": []
+      }
+    },
+    {
+      "id": "disruptive_behavior",
+      "name": "Disruptive Behavior Disorder",
+      "nameKo": "파괴적 행동장애",
+      "treatments": {
+        "1": ["Combined BT + CBT + Family Therapy (FFT, MST, TFCO) — adolescents", "Group parent behavior therapy (IY Basic, PMTO, COMET, Triple P Lv4) — children", "Individual parent BT with child participation (BPT, PMTO, OSLC, PCIT) — children"],
+        "2": ["CBT (ART + Positive Peer Culture, Social Cognitive Intervention) — adolescents", "Combined BT + Attachment-Based (Connect) — adolescents", "Group/Self-directed parent BT, Child BT, Play therapy — children"],
+        "3": ["Parenting Skills, CBT, Combined BT+CBT, Family Therapy, IPT — adolescents", "Project TEAM, IY + Teacher Training — children"],
+        "4": ["Art Therapy, Mentoring, Mindfulness, Brief Strategic FT, extensive CBT variants — adolescents", "Collaborative & Proactive Solutions — children"],
+        "5": ["Animal Assisted Therapy, Contingency Management, various CBT variants — adolescents"]
+      }
+    },
+    {
+      "id": "elimination_enuresis",
+      "name": "Nocturnal Enuresis",
+      "nameKo": "야뇨증",
+      "treatments": {
+        "1": ["Urine alarm", "Dry-Bed Training"],
+        "2": ["Full Spectrum Home Therapy"],
+        "3": ["Lifting"],
+        "4": [],
+        "5": ["Hypnotherapy", "Retention control training"]
+      }
+    },
+    {
+      "id": "elimination_encopresis",
+      "name": "Encopresis",
+      "nameKo": "유분증",
+      "treatments": {
+        "1": [],
+        "2": ["Biofeedback", "Enhanced Toilet Training"],
+        "3": [],
+        "4": [],
+        "5": []
+      }
+    },
+    {
+      "id": "gender_dysphoria",
+      "name": "Gender Dysphoria",
+      "nameKo": "성별불쾌감",
+      "treatments": {
+        "note": "현재 성별불쾌감을 감소시키는 것으로 입증된 심리 개입은 없음. 성별 정체성을 변경하려는 치료는 비윤리적으로 간주됨. 성별확인 지지적 개입(사회적 전환, 사춘기 억제 등)이 권장됨."
+      }
+    },
+    {
+      "id": "obesity",
+      "name": "Obesity and Overweight",
+      "nameKo": "비만/과체중",
+      "treatments": {
+        "1": ["Family-Based Treatment (FBT)", "Parent-only Behavioral Treatment (PBT)"],
+        "2": [],
+        "3": ["FBT variants (Group, Web, Parent-only, Low-dose)", "Behavioral weight loss + family involvement", "Camp-based BWL"],
+        "4": ["FBT + exercise", "BWL variants", "CBT options", "Mindful Eating"],
+        "5": ["Parents-only BWL", "Smartphone/app-based approaches", "Motivational Interviewing", "Various CBT variants"]
+      }
+    },
+    {
+      "id": "ocd",
+      "name": "Obsessive Compulsive Disorder",
+      "nameKo": "강박장애",
+      "treatments": {
+        "1": ["Family-focused CBT (with ERP)"],
+        "2": ["CBT (individual)", "Non face-to-face CBT"],
+        "3": ["Group CBT (family-focused)", "Group CBT (non-family focused)"],
+        "4": ["Acceptance and Commitment Therapy (ACT)", "Attachment-based therapy"],
+        "5": []
+      }
+    },
+    {
+      "id": "ptsd",
+      "name": "Post-Traumatic Stress Disorder",
+      "nameKo": "외상후스트레스장애",
+      "treatments": {
+        "1": ["Individual CBT", "Group CBT", "Individual CBT with parent involvement"],
+        "2": ["Group CBT with parent involvement", "EMDR"],
+        "3": ["Integrated therapy for complex trauma", "Group mind-body skills"],
+        "4": ["Client-centered play therapy", "Mind-body skills", "Psychoanalysis"],
+        "5": ["Group creative expressive + CBT"]
+      }
+    },
+    {
+      "id": "schizophrenia",
+      "name": "Schizophrenia",
+      "nameKo": "조현병",
+      "treatments": {
+        "1": ["Multimodal therapy", "Family-focused therapy", "CBT for psychosis"],
+        "2": ["Employment/Education programs"],
+        "3": ["Omega-3 fatty acids"],
+        "4": ["Social skills training"],
+        "5": ["Insight-oriented therapies"]
+      }
+    },
+    {
+      "id": "self_injury",
+      "name": "Self-Injurious Thoughts & Behaviors",
+      "nameKo": "자해사고 및 행동",
+      "treatments": {
+        "1": ["DBT-A (deliberate self-harm, suicide ideation)"],
+        "2": ["DBT-A (NSSI, suicide attempts)", "CBT–Individual + Family (suicide attempts)", "Integrated Family Therapy (suicide attempts)", "IPT-A–Individual (suicide ideation)", "Psychodynamic Therapy–Individual + Family (deliberate self-harm)", "Parent Training (all SITB)"],
+        "3": ["Multiple Systems Therapy (suicide attempts)"],
+        "4": ["CBT-Individual (suicide attempts/ideation)", "Psychodynamic–Family-Based", "Integrated Family Therapy (NSSI)", "Family Therapy", "Brief Family-Based Therapy", "Support-Based Therapy", "Brief Skills Training", "Motivational Interviewing", "Resource Interventions"],
+        "5": ["Eclectic Group Therapy (deliberate self-harm/ideation)", "Support-Based Therapy (suicide attempts)", "Resource Intervention (suicide attempts)"]
+      }
+    },
+    {
+      "id": "substance_abuse",
+      "name": "Substance Abuse",
+      "nameKo": "물질남용",
+      "treatments": {
+        "1": ["CBT (individual, group, family)", "MET with CBT", "Family-based treatment–ecological (with/without CBT and MET)"],
+        "2": ["Family-based treatment–behavioral", "Motivational Interviewing/MET", "Combined family-based treatment-ecological + contingency management", "Family-based treatment + MET", "MET with CBT + contingency management"],
+        "3": ["Drug counseling/12-Step"],
+        "4": [],
+        "5": []
+      }
+    }
+  ]
+}
