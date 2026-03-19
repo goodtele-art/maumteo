@@ -1,5 +1,3 @@
-import type { FloorId } from "./floor.ts";
-
 export type FacilityType =
   | "individual_room"
   | "group_room"
@@ -11,7 +9,6 @@ export type FacilityType =
 export interface Facility {
   id: string;
   type: FacilityType;
-  floorId: FloorId;
   slotIndex: number;
   level: number;
   buildCost: number;

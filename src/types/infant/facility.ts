@@ -1,5 +1,3 @@
-import type { InfantFloorId } from "./floor.ts";
-
 export type InfantFacilityType =
   | "infant_play"
   | "sensory_room"
@@ -10,7 +8,6 @@ export type InfantFacilityType =
 export interface InfantFacility {
   id: string;
   type: InfantFacilityType;
-  floorId: InfantFloorId;
   slotIndex: number;
   level: number;
   buildCost: number;

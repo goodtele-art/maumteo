@@ -5,7 +5,6 @@
 import { useGameStore } from "@/store/gameStore.ts";
 import { generatePatient } from "@/lib/engine/patient.ts";
 import { generateChildPatient } from "@/lib/engine/childPatient.ts";
-import type { ChildFloorId } from "@/types/child/floor.ts";
 
 /** URL에서 debug 파라미터 읽기 */
 export function getDebugTurn(): number | null {
@@ -33,10 +32,10 @@ function initTurn30() {
   s.hireCounselor("한상담", "cbt", 5, 60);
 
   // 성인 시설
-  s.buildFacility("counseling", "individual_room", 0);
-  s.buildFacility("counseling", "group_room", 1);
-  s.buildFacility("diagnostic", "exposure_lab", 0);
-  s.buildFacility("basement", "family_room", 0);
+  s.buildFacility("individual_room", 0);
+  s.buildFacility("group_room", 1);
+  s.buildFacility("exposure_lab", 2);
+  s.buildFacility("family_room", 3);
 
   // 성인 내담자 8명 (다양한 문제, 다양한 EM)
   s.setPatients({});
@@ -68,11 +67,11 @@ function initTurn60() {
   s.hireCounselor("한상담", "cbt", 6, 60);
 
   // 성인 시설
-  s.buildFacility("counseling", "individual_room", 0);
-  s.buildFacility("counseling", "group_room", 1);
-  s.buildFacility("diagnostic", "exposure_lab", 0);
-  s.buildFacility("basement", "family_room", 0);
-  s.buildFacility("insight", "mindfulness_room", 0);
+  s.buildFacility("individual_room", 0);
+  s.buildFacility("group_room", 1);
+  s.buildFacility("exposure_lab", 2);
+  s.buildFacility("family_room", 3);
+  s.buildFacility("mindfulness_room", 4);
 
   // 성인 내담자 6명
   s.setPatients({});
@@ -94,9 +93,9 @@ function initTurn60() {
 
     // 아동 시설
     const childFacilities = {
-      cf_1: { id: "cf_1", type: "play_room" as const, floorId: "child_care" as ChildFloorId, slotIndex: 0, level: 2, buildCost: 120, upkeepPerTurn: 10, emReduction: 10 },
-      cf_2: { id: "cf_2", type: "parent_room" as const, floorId: "child_care" as ChildFloorId, slotIndex: 1, level: 1, buildCost: 100, upkeepPerTurn: 8, emReduction: 5 },
-      cf_3: { id: "cf_3", type: "group_activity" as const, floorId: "child_intensive" as ChildFloorId, slotIndex: 0, level: 1, buildCost: 160, upkeepPerTurn: 14, emReduction: 7 },
+      cf_1: { id: "cf_1", type: "play_room" as const, slotIndex: 0, level: 2, buildCost: 120, upkeepPerTurn: 10, emReduction: 10 },
+      cf_2: { id: "cf_2", type: "parent_room" as const, slotIndex: 1, level: 1, buildCost: 100, upkeepPerTurn: 8, emReduction: 5 },
+      cf_3: { id: "cf_3", type: "group_activity" as const, slotIndex: 2, level: 1, buildCost: 160, upkeepPerTurn: 14, emReduction: 7 },
     };
 
     // 아동 내담자 5명

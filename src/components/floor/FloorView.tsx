@@ -16,7 +16,11 @@ interface FloorViewProps {
   onFire: (counselorId: string) => void;
 }
 
-const MAX_SLOTS = 4;
+/** 센터당 최대 시설 슬롯 (성인/아동 6, 영유아 5) */
+function getMaxSlots(stage: string): number {
+  if (stage === "infant") return 5;
+  return 6;
+}
 
 type SortMode = "default" | "em_high" | "neglected";
 
@@ -47,37 +51,39 @@ function useStageData() {
 
   if (activeStage === "child" && childStage) {
     return {
+      stage: "child" as const,
       selectedFloorId: childStage.selectedFloorId as string,
       facilities: childStage.facilities as unknown as Record<string, import("@/types/index.ts").Facility>,
       patients: childStage.patients as unknown as Record<string, Patient>,
-      stageLabel: "아동센터",
     };
   }
   if (activeStage === "infant" && infantStage) {
     return {
+      stage: "infant" as const,
       selectedFloorId: infantStage.selectedFloorId as string,
       facilities: infantStage.facilities as unknown as Record<string, import("@/types/index.ts").Facility>,
       patients: infantStage.patients as unknown as Record<string, Patient>,
-      stageLabel: "영유아센터",
     };
   }
   return {
+    stage: "adult" as const,
     selectedFloorId: adultFloor,
     facilities: adultFacilities,
     patients: adultPatients,
-    stageLabel: "성인센터",
   };
 }
 
 export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, onFire }: FloorViewProps) {
-  const { selectedFloorId, facilities, patients } = useStageData();
+  const { stage, selectedFloorId, facilities, patients } = useStageData();
   const currentTurn = useGameStore((s) => s.currentTurn);
   const [sortMode, setSortMode] = useState<SortMode>("default");
 
-  const floorFacilities = Object.values(facilities).filter(
-    (f) => f.floorId === selectedFloorId,
-  );
+  const maxSlots = getMaxSlots(stage);
 
+  // 시설: 센터 전체 (층 무관)
+  const allFacilities = Object.values(facilities);
+
+  // 내담자: 현재 층의 환자만 표시
   const floorPatients = Object.values(patients).filter(
     (p) => p.currentFloorId === selectedFloorId,
   );
@@ -87,8 +93,10 @@ export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, on
     [floorPatients, sortMode, currentTurn],
   );
 
-  const slots = Array.from({ length: MAX_SLOTS }, (_, i) =>
-    floorFacilities.find((f) => f.slotIndex === i) ?? null,
+  // 시설 슬롯: 기존 시설 + 빈 슬롯 1개(추가 버튼)만 표시 (모바일 최적화)
+  const occupiedSlots = allFacilities.map((f) => f.slotIndex);
+  const nextEmptySlot = Array.from({ length: maxSlots }, (_, i) => i).find(
+    (i) => !occupiedSlots.includes(i),
   );
 
   const cycleSortMode = () => {
@@ -107,15 +115,24 @@ export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, on
             <div className="mb-4">
               <h3 className="text-sm text-theme-tertiary mb-2">시설</h3>
               <div className="grid grid-cols-2 gap-2">
-                {slots.map((facility, i) => (
+                {allFacilities.map((facility) => (
                   <FacilitySlot
-                    key={facility?.id ?? `empty-${i}`}
+                    key={facility.id}
                     facility={facility}
-                    slotIndex={i}
+                    slotIndex={facility.slotIndex}
                     onBuild={onBuild}
                     onUpgrade={onUpgrade}
                   />
                 ))}
+                {nextEmptySlot !== undefined && (
+                  <FacilitySlot
+                    key={`empty-${nextEmptySlot}`}
+                    facility={null}
+                    slotIndex={nextEmptySlot}
+                    onBuild={onBuild}
+                    onUpgrade={onUpgrade}
+                  />
+                )}
               </div>
             </div>
 

@@ -1,5 +1,3 @@
-import type { ChildFloorId } from "./floor.ts";
-
 export type ChildFacilityType =
   | "play_room"
   | "parent_room"
@@ -11,7 +9,6 @@ export type ChildFacilityType =
 export interface ChildFacility {
   id: string;
   type: ChildFacilityType;
-  floorId: ChildFloorId;
   slotIndex: number;
   level: number;
   buildCost: number;

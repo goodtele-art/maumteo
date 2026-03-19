@@ -31,7 +31,7 @@ function initNewGame(): void {
   s.addPatient(p1);
   s.addPatient(p2);
   s.hireCounselor("김마음", "cbt", 3, 25);
-  s.buildFacility("counseling", "individual_room", 0);
+  s.buildFacility("individual_room", 0);
 }
 
 export function useSave() {

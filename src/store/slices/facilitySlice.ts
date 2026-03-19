@@ -1,11 +1,11 @@
 import type { StateCreator } from "zustand";
 import type { GameStore } from "../gameStore.ts";
-import type { Facility, FacilityType, FloorId } from "@/types/index.ts";
+import type { Facility, FacilityType } from "@/types/index.ts";
 import { FACILITY_TEMPLATES } from "@/lib/constants.ts";
 
 export interface FacilitySlice {
   facilities: Record<string, Facility>;
-  buildFacility: (floorId: FloorId, type: FacilityType, slotIndex: number) => string;
+  buildFacility: (type: FacilityType, slotIndex: number) => string;
   upgradeFacility: (id: string) => void;
   setFacilities: (facilities: Record<string, Facility>) => void;
 }
@@ -27,13 +27,12 @@ export const createFacilitySlice: StateCreator<
 > = (set, get) => ({
   facilities: {},
 
-  buildFacility: (floorId, type, slotIndex) => {
+  buildFacility: (type, slotIndex) => {
     const template = FACILITY_TEMPLATES[type];
     const id = nextFacilityId(get().facilities);
     const facility: Facility = {
       id,
       type,
-      floorId,
       slotIndex,
       level: 1,
       buildCost: template.buildCost,
