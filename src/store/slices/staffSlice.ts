@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { GameStore } from "../gameStore.ts";
-import type { ClinicalPsychologist, CenterDirector } from "@/types/staff/index.ts";
+import type { ClinicalPsychologist, CenterDirector, ViceDirector } from "@/types/staff/index.ts";
 import { getMaxAssessments } from "@/types/staff/index.ts";
 
 function generateStaffId(prefix: string): string {
@@ -22,6 +22,13 @@ export interface StaffSlice {
     salary: number,
   ) => void;
   fireDirector: (stage: "child" | "infant") => void;
+  hireViceDirector: (
+    stage: "adult" | "child",
+    name: string,
+    managementSkill: number,
+    salary: number,
+  ) => void;
+  fireViceDirector: (stage: "adult" | "child") => void;
 }
 
 export const createStaffSlice: StateCreator<GameStore, [], [], StaffSlice> = (
@@ -94,6 +101,33 @@ export const createStaffSlice: StateCreator<GameStore, [], [], StaffSlice> = (
       }
       if (stage === "infant" && state.infantStage) {
         return { infantStage: { ...state.infantStage, director: null } };
+      }
+      return {};
+    }),
+
+  hireViceDirector: (stage, name, managementSkill, salary) => {
+    const id = generateStaffId("vd");
+    const viceDirector: ViceDirector = { id, name, managementSkill, salary };
+
+    set((state) => {
+      if (stage === "adult") {
+        // 성인센터는 gameStore 루트에 viceDirector 저장
+        return { viceDirector };
+      }
+      if (stage === "child" && state.childStage) {
+        return { childStage: { ...state.childStage, viceDirector } };
+      }
+      return {};
+    });
+  },
+
+  fireViceDirector: (stage) =>
+    set((state) => {
+      if (stage === "adult") {
+        return { viceDirector: null };
+      }
+      if (stage === "child" && state.childStage) {
+        return { childStage: { ...state.childStage, viceDirector: null } };
       }
       return {};
     }),

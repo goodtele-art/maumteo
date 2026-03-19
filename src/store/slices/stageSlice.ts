@@ -32,6 +32,7 @@ export const createStageSlice: StateCreator<GameStore, [], [], StageSlice> = (
         counselors: {},
         psychologists: {},
         director: null,
+        viceDirector: null,
         referral: null,
         specialization: null,
         selectedFloorId: "child_care" as ChildFloorId,

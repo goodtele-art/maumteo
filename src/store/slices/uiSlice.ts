@@ -1,16 +1,21 @@
 import type { StateCreator } from "zustand";
 import type { GameStore } from "../gameStore.ts";
 import type { FloorId, ModalType, Notification } from "@/types/index.ts";
+import type { ViceDirector } from "@/types/staff/index.ts";
+import type { DelegationReport } from "@/types/delegation.ts";
 
 export interface UiSlice {
   selectedFloorId: FloorId;
   activeModal: ModalType | null;
   notifications: Notification[];
+  viceDirector: ViceDirector | null; // 성인센터 부센터장
+  delegationReport: DelegationReport | null;
   selectFloor: (floorId: FloorId) => void;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
   addNotification: (message: string, type: Notification["type"]) => void;
   dismissNotification: (id: string) => void;
+  setDelegationReport: (report: DelegationReport | null) => void;
 }
 
 export const createUiSlice: StateCreator<
@@ -22,6 +27,8 @@ export const createUiSlice: StateCreator<
   selectedFloorId: "counseling",
   activeModal: null,
   notifications: [],
+  viceDirector: null,
+  delegationReport: null,
 
   selectFloor: (floorId) => set({ selectedFloorId: floorId }),
 
@@ -41,4 +48,6 @@ export const createUiSlice: StateCreator<
     set((s) => ({
       notifications: s.notifications.filter((n) => n.id !== id),
     })),
+
+  setDelegationReport: (report) => set({ delegationReport: report }),
 });

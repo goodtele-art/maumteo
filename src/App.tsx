@@ -32,6 +32,7 @@ import ParticleCanvas from "@/components/effects/ParticleCanvas.tsx";
 import EventFlash from "@/components/effects/EventFlash.tsx";
 import EndingScreen from "@/components/stage/EndingScreen.tsx";
 import CrisisHelpPopup from "@/components/stage/CrisisHelpPopup.tsx";
+import DelegationReportModal from "@/components/stage/DelegationReportModal.tsx";
 import { ENDING_A_TURN, ENDING_S_TURN, CHILD_STAGE_OPEN_TURN, INFANT_STAGE_OPEN_TURN } from "@/lib/constants/crossStageConstants.ts";
 import { getDebugTurn, applyDebugScenario } from "@/lib/debugScenarios.ts";
 import type { ParticleEmission } from "@/components/effects/ParticleCanvas.tsx";
@@ -460,6 +461,7 @@ export default function App() {
       )}
 
       {showCrisisHelp && <CrisisHelpPopup onClose={() => setShowCrisisHelp(false)} />}
+      <DelegationReportModal />
 
       <EventModal />
       <GuideModal guide={currentGuide} onDismiss={dismissGuide} />

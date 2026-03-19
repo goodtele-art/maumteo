@@ -8,6 +8,7 @@ import type { CounselorSpecialty } from "@/types/counselor.ts";
 import type { ChildSpecialty } from "@/types/child/counselor.ts";
 import type { InfantSpecialty } from "@/types/infant/counselor.ts";
 import { ISSUE_LABELS } from "@/lib/engine/patient.ts";
+import { VICE_DIRECTOR_UNLOCK_ADULT, VICE_DIRECTOR_UNLOCK_CHILD } from "@/lib/constants/crossStageConstants.ts";
 import { CHILD_ISSUE_LABELS } from "@/lib/engine/childPatient.ts";
 import { INFANT_ISSUE_LABELS } from "@/lib/engine/infantPatient.ts";
 
@@ -169,6 +170,71 @@ export default function HireAction({ open, onClose, onHire }: HireActionProps) {
         </div>
       )}
       <p className="text-xs text-theme-tertiary mt-3">매 턴 새로운 지원자가 나타납니다</p>
+
+      {/* 부센터장 고용 */}
+      <ViceDirectorHireSection stageAp={stageAp} />
     </Modal>
+  );
+}
+
+function ViceDirectorHireSection({ stageAp }: { stageAp: number }) {
+  const currentTurn = useGameStore((s) => s.currentTurn);
+  const activeStage = useGameStore((s) => s.activeStage);
+  const gold = useGameStore((s) => s.gold);
+  const adultVD = useGameStore((s) => s.viceDirector);
+  const childVD = useGameStore((s) => s.childStage?.viceDirector ?? null);
+  const hireViceDirector = useGameStore((s) => s.hireViceDirector);
+
+  // 해금 조건 확인
+  const unlockTurn = activeStage === "adult" ? VICE_DIRECTOR_UNLOCK_ADULT : activeStage === "child" ? VICE_DIRECTOR_UNLOCK_CHILD : Infinity;
+  if (currentTurn < unlockTurn) return null;
+  if (activeStage === "infant") return null;
+
+  // 이미 고용됨
+  const hasVD = activeStage === "adult" ? adultVD !== null : childVD !== null;
+  if (hasVD) {
+    const vd = activeStage === "adult" ? adultVD : childVD;
+    return (
+      <div className="mt-4 pt-3 border-t border-theme-default">
+        <div className="text-xs text-theme-tertiary mb-1">부센터장</div>
+        <div className="text-sm text-theme-primary">
+          {vd!.name} (관리 실력 {vd!.managementSkill}) · 급여 {vd!.salary}/턴
+        </div>
+      </div>
+    );
+  }
+
+  // 부센터장 후보 생성
+  const seed = currentTurn * 13 + 7;
+  const surname = SURNAMES[seed % SURNAMES.length]!;
+  const given = GIVEN_NAMES[(seed >> 3) % GIVEN_NAMES.length]!;
+  const name = `${surname}${given}`;
+  const managementSkill = 3 + (seed % 6); // 3~8
+  const salary = 30 + managementSkill * 5; // 45~70
+  const hireCost = salary * 2;
+  const affordable = gold >= hireCost && stageAp >= AP_COST.hire;
+
+  return (
+    <div className="mt-4 pt-3 border-t border-theme-default">
+      <div className="text-xs text-amber-400 mb-2">부센터장 고용 (위임 운영 가능)</div>
+      <button
+        onClick={() => {
+          if (affordable) {
+            hireViceDirector(activeStage as "adult" | "child", name, managementSkill, salary);
+            useGameStore.getState().addNotification(`${name} 부센터장 고용 완료!`, "success");
+          }
+        }}
+        disabled={!affordable}
+        className={`w-full p-3 rounded-lg text-left transition-colors ${
+          affordable
+            ? "bg-amber-600/20 hover:bg-amber-600/30 text-theme-primary border border-amber-500/30"
+            : "bg-surface-card text-theme-tertiary cursor-not-allowed opacity-60"
+        }`}
+      >
+        <div className="text-sm font-medium">{name}</div>
+        <div className="text-xs text-amber-400 mt-0.5">관리 실력 {managementSkill} · 급여 {salary}/턴</div>
+        <div className="text-xs text-theme-tertiary mt-0.5">고용비 {hireCost}G · 위임하기로 자동 치료 운영</div>
+      </button>
+    </div>
   );
 }

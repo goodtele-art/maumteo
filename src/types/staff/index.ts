@@ -16,6 +16,13 @@ export interface CenterDirector {
   disputesResolved: number;
 }
 
+export interface ViceDirector {
+  id: string;
+  name: string;
+  managementSkill: number; // 1~10 (의사결정 정확도)
+  salary: number; // 기본 40
+}
+
 /** 임상심리사 skill에 따른 턴당 최대 검사 인원 */
 export function getMaxAssessments(skill: number): number {
   if (skill >= 8) return 3;

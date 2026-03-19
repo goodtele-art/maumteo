@@ -7,7 +7,7 @@ import type { ChildCounselor } from "./child/counselor.ts";
 import type { InfantPatient } from "./infant/patient.ts";
 import type { InfantFacility } from "./infant/facility.ts";
 import type { InfantCounselor } from "./infant/counselor.ts";
-import type { ClinicalPsychologist, CenterDirector } from "./staff/index.ts";
+import type { ClinicalPsychologist, CenterDirector, ViceDirector } from "./staff/index.ts";
 import type { CommunityReferral, ParentStress } from "./referral.ts";
 import type { TurnLogEntry, Notification } from "./game.ts";
 import type { FloorId } from "./floor.ts";
@@ -23,6 +23,7 @@ export interface AdultStageState {
   patients: Record<string, Patient>;
   facilities: Record<string, Facility>;
   counselors: Record<string, Counselor>;
+  viceDirector: ViceDirector | null;
   selectedFloorId: FloorId;
 }
 
@@ -35,6 +36,7 @@ export interface ChildStageState {
   counselors: Record<string, ChildCounselor>;
   psychologists: Record<string, ClinicalPsychologist>;
   director: CenterDirector | null;
+  viceDirector: ViceDirector | null;
   referral: CommunityReferral | null;
   specialization: "trauma_focused" | "general" | null;
   selectedFloorId: ChildFloorId;

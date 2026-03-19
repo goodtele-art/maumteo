@@ -4,6 +4,7 @@ import {
   CHILD_STAGE_OPEN_TURN,
   INFANT_STAGE_OPEN_TURN,
 } from "@/lib/constants/crossStageConstants.ts";
+import { useDelegation } from "@/hooks/useDelegation.ts";
 import { CHILD_INCOME_PER_PATIENT } from "@/lib/constants/childConstants.ts";
 import {
   INFANT_INCOME_PER_SESSION,
@@ -78,12 +79,18 @@ function useStageStats(stageId: StageId): StageStats | null {
   return null;
 }
 
-function CenterCard({ center }: { center: CenterInfo }) {
+function CenterCard({ center, onDelegate }: { center: CenterInfo; onDelegate?: () => void }) {
   const switchStage = useGameStore((s) => s.switchStage);
   const activeStage = useGameStore((s) => s.activeStage);
+  const adultVD = useGameStore((s) => s.viceDirector);
+  const childVD = useGameStore((s) => s.childStage?.viceDirector ?? null);
   const stats = useStageStats(center.id);
   const isActive = activeStage === center.id;
   const locked = stats === null;
+
+  // 부센터장 존재 여부
+  const hasViceDirector = center.id === "adult" ? adultVD !== null : center.id === "child" ? childVD !== null : false;
+  const canDelegate = isActive && hasViceDirector && !locked && stats!.ap > 0;
 
   return (
     <button
@@ -118,6 +125,14 @@ function CenterCard({ center }: { center: CenterInfo }) {
             <span>위기</span>
             <span>{stats.alertCount}건</span>
           </div>
+          {canDelegate && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelegate?.(); }}
+              className="mt-2 w-full py-1 rounded text-[10px] font-medium bg-amber-600/80 hover:bg-amber-500 text-white transition-colors"
+            >
+              위임하기
+            </button>
+          )}
         </div>
       )}
     </button>
@@ -127,13 +142,18 @@ function CenterCard({ center }: { center: CenterInfo }) {
 export default function StageDashboard() {
   const currentTurn = useGameStore((s) => s.currentTurn);
   const unlockedCenters = CENTERS.filter((c) => currentTurn >= c.unlockTurn);
+  const { delegate } = useDelegation();
 
   return (
     <section className="p-3">
       <h2 className="text-sm font-medium text-theme-primary mb-2">센터 현황</h2>
       <div className="flex gap-2">
         {unlockedCenters.map((center) => (
-          <CenterCard key={center.id} center={center} />
+          <CenterCard
+            key={center.id}
+            center={center}
+            onDelegate={() => delegate(center.id)}
+          />
         ))}
       </div>
     </section>

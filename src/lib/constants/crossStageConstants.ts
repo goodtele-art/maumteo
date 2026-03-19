@@ -56,6 +56,10 @@ export const FAMILY_LINK_PARENT_BOOST = 10; // 성인 내담자가 아동 부모
 export const CONFLICT_RESOLUTION_TURNS = 3;  // 법적 분쟁 해결 소요 턴
 export const CONFLICT_COST_PER_TURN = 50;    // 매 턴 법률 비용
 
+// ── 부센터장 해금 턴 ──
+export const VICE_DIRECTOR_UNLOCK_ADULT = 40;
+export const VICE_DIRECTOR_UNLOCK_CHILD = 70;
+
 // ── 엔딩 분기 ──
 export const ENDING_A_TURN = 60;
 export const ENDING_S_TURN = 90;

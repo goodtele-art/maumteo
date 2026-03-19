@@ -9,7 +9,8 @@ export type ModalType =
   | "treat"
   | "patient_detail"
   | "turn_result"
-  | "tutorial";
+  | "tutorial"
+  | "delegation_report";
 
 export interface Notification {
   id: string;
