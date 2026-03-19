@@ -190,6 +190,8 @@ function ViceDirectorHireSection({ stageAp }: { stageAp: number }) {
   if (currentTurn < unlockTurn) return null;
   if (activeStage === "infant") return null;
 
+  const fireViceDirector = useGameStore((s) => s.fireViceDirector);
+
   // 이미 고용됨
   const hasVD = activeStage === "adult" ? adultVD !== null : childVD !== null;
   if (hasVD) {
@@ -197,8 +199,19 @@ function ViceDirectorHireSection({ stageAp }: { stageAp: number }) {
     return (
       <div className="mt-4 pt-3 border-t border-theme-default">
         <div className="text-xs text-theme-tertiary mb-1">부센터장</div>
-        <div className="text-sm text-theme-primary">
-          {vd!.name} (관리 실력 {vd!.managementSkill}) · 급여 {vd!.salary}/턴
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-theme-primary">
+            {vd!.name} (관리 실력 {vd!.managementSkill}) · 급여 {vd!.salary}/턴
+          </div>
+          <button
+            onClick={() => {
+              fireViceDirector(activeStage as "adult" | "child");
+              useGameStore.getState().addNotification(`${vd!.name} 부센터장 해고`, "info");
+            }}
+            className="text-xs text-red-400 hover:text-red-300 ml-2"
+          >
+            해고
+          </button>
         </div>
       </div>
     );

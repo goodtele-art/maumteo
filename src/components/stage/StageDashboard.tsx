@@ -88,9 +88,9 @@ function CenterCard({ center, onDelegate }: { center: CenterInfo; onDelegate?: (
   const isActive = activeStage === center.id;
   const locked = stats === null;
 
-  // 부센터장 존재 여부
+  // 부센터장 존재 여부 (비활성 센터에서도 표시)
   const hasViceDirector = center.id === "adult" ? adultVD !== null : center.id === "child" ? childVD !== null : false;
-  const canDelegate = isActive && hasViceDirector && !locked && stats!.ap > 0;
+  const canDelegate = hasViceDirector && !locked && stats!.ap > 0;
 
   return (
     <button
@@ -127,7 +127,11 @@ function CenterCard({ center, onDelegate }: { center: CenterInfo; onDelegate?: (
           </div>
           {canDelegate && (
             <button
-              onClick={(e) => { e.stopPropagation(); onDelegate?.(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isActive) switchStage(center.id);
+                setTimeout(() => onDelegate?.(), 50);
+              }}
               className="mt-2 w-full py-1 rounded text-[10px] font-medium bg-amber-600/80 hover:bg-amber-500 text-white transition-colors"
             >
               위임하기
