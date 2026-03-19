@@ -8,6 +8,7 @@ function generateStaffId(prefix: string): string {
 }
 
 export interface StaffSlice {
+  viceDirector: ViceDirector | null; // 성인센터 부센터장 (root level)
   hirePsychologist: (
     stage: "child" | "infant",
     name: string,
@@ -34,6 +35,7 @@ export interface StaffSlice {
 export const createStaffSlice: StateCreator<GameStore, [], [], StaffSlice> = (
   set,
 ) => ({
+  viceDirector: null,
   hirePsychologist: (stage, name, skill, salary) => {
     const id = generateStaffId("psy");
     const psychologist: ClinicalPsychologist = {
@@ -108,14 +110,25 @@ export const createStaffSlice: StateCreator<GameStore, [], [], StaffSlice> = (
   hireViceDirector: (stage, name, managementSkill, salary) => {
     const id = generateStaffId("vd");
     const viceDirector: ViceDirector = { id, name, managementSkill, salary };
+    const hireCost = salary * 2;
 
     set((state) => {
       if (stage === "adult") {
-        // 성인센터는 gameStore 루트에 viceDirector 저장
-        return { viceDirector };
+        return {
+          viceDirector,
+          gold: state.gold - hireCost,
+          ap: state.ap - 2, // AP_COST.hire
+        };
       }
       if (stage === "child" && state.childStage) {
-        return { childStage: { ...state.childStage, viceDirector } };
+        return {
+          gold: state.gold - hireCost,
+          childStage: {
+            ...state.childStage,
+            viceDirector,
+            ap: state.childStage.ap - 2,
+          },
+        };
       }
       return {};
     });

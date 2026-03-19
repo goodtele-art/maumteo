@@ -71,6 +71,7 @@ export interface GameState {
 }
 
 import type { StageId, ChildStageState, InfantStageState } from "./stage.ts";
+import type { ViceDirector } from "./staff/index.ts";
 
 export interface SaveData {
   version: 1 | 2;
@@ -88,4 +89,5 @@ export interface SaveData {
   activeStage?: StageId;
   childStage?: ChildStageState | null;
   infantStage?: InfantStageState | null;
+  viceDirector?: ViceDirector | null; // 성인센터 부센터장
 }

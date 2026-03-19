@@ -4,7 +4,7 @@ import type { Patient } from "@/types/patient.ts";
 import type { Facility } from "@/types/facility.ts";
 import type { Counselor } from "@/types/counselor.ts";
 
-export function serialize(state: GameState & { activeStage?: string; childStage?: unknown; infantStage?: unknown }): string {
+export function serialize(state: GameState & { activeStage?: string; childStage?: unknown; infantStage?: unknown; viceDirector?: unknown }): string {
   const data: SaveData = {
     version: 2,
     timestamp: Date.now(),
@@ -20,6 +20,7 @@ export function serialize(state: GameState & { activeStage?: string; childStage?
     activeStage: (state.activeStage as SaveData["activeStage"]) ?? "adult",
     childStage: (state.childStage as SaveData["childStage"]) ?? null,
     infantStage: (state.infantStage as SaveData["infantStage"]) ?? null,
+    viceDirector: (state.viceDirector as SaveData["viceDirector"]) ?? null,
   };
   return JSON.stringify(data);
 }

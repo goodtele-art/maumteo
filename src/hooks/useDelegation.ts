@@ -70,61 +70,70 @@ export function useDelegation() {
       useGameStore.setState({ activeStage: stageId });
     }
 
-    // 계획 수립
-    const plan = planDelegation({
-      patients: Object.values(patients).map(p => ({
-        id: p.id,
-        name: p.name,
-        em: p.em,
-        dominantIssue: p.dominantIssue,
-        rapport: p.rapport,
-        treatmentCount: p.treatmentCount,
-      })),
-      counselors: Object.values(counselors),
-      facilities: facilitiesWithLabel,
-      ap,
-      viceDirector,
-      getMatchMultiplier: matchFn,
-    });
-
-    // 계획 실행
-    const executedActions: DelegationAction[] = [];
-
-    for (const action of plan.actions) {
-      if (action.type === "treat") {
-        const result = treat(action.patientId, action.counselorId, action.facilityId);
-        if (result && result.success) {
-          executedActions.push({
-            type: "treat",
-            patientId: action.patientId,
-            patientName: action.patientName,
-            counselorId: action.counselorId,
-            counselorName: action.counselorName,
-            facilityId: action.facilityId,
-            facilityLabel: action.facilityLabel ? (allTemplates[action.facilityLabel.split(" ")[0]!]?.label ?? action.facilityLabel) : undefined,
-            emBefore: result.emBefore,
-            emAfter: result.emAfter,
-            emDelta: result.emDelta,
-          });
-        }
-      } else {
-        const result = encourage(action.patientId);
-        if (result && result.success) {
-          executedActions.push({
-            type: "encourage",
-            patientId: action.patientId,
-            patientName: action.patientName,
-            emBefore: result.emBefore,
-            emAfter: result.emAfter,
-            emDelta: result.emDelta,
-          });
-        }
-      }
+    // 시설 ID → 라벨 매핑
+    const facilityLabelMap: Record<string, string> = {};
+    for (const f of Object.values(facilities)) {
+      facilityLabelMap[f.id] = allTemplates[f.type]?.label ?? f.type;
     }
 
-    // activeStage 복원
-    if (prevStage !== stageId) {
-      useGameStore.setState({ activeStage: prevStage });
+    let plan;
+    const executedActions: DelegationAction[] = [];
+
+    try {
+      // 계획 수립
+      plan = planDelegation({
+        patients: Object.values(patients).map(p => ({
+          id: p.id,
+          name: p.name,
+          em: p.em,
+          dominantIssue: p.dominantIssue,
+          rapport: p.rapport,
+          treatmentCount: p.treatmentCount,
+        })),
+        counselors: Object.values(counselors),
+        facilities: facilitiesWithLabel,
+        ap,
+        viceDirector,
+        getMatchMultiplier: matchFn,
+      });
+
+      // 계획 실행
+      for (const action of plan.actions) {
+        if (action.type === "treat") {
+          const result = treat(action.patientId, action.counselorId, action.facilityId);
+          if (result && result.success) {
+            executedActions.push({
+              type: "treat",
+              patientId: action.patientId,
+              patientName: action.patientName,
+              counselorId: action.counselorId,
+              counselorName: action.counselorName,
+              facilityId: action.facilityId,
+              facilityLabel: action.facilityId ? facilityLabelMap[action.facilityId] : undefined,
+              emBefore: result.emBefore,
+              emAfter: result.emAfter,
+              emDelta: result.emDelta,
+            });
+          }
+        } else {
+          const result = encourage(action.patientId);
+          if (result && result.success) {
+            executedActions.push({
+              type: "encourage",
+              patientId: action.patientId,
+              patientName: action.patientName,
+              emBefore: result.emBefore,
+              emAfter: result.emAfter,
+              emDelta: result.emDelta,
+            });
+          }
+        }
+      }
+    } finally {
+      // activeStage 복원 (에러 발생해도 반드시 복원)
+      if (prevStage !== stageId) {
+        useGameStore.setState({ activeStage: prevStage });
+      }
     }
 
     // 보고서 생성

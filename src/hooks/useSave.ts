@@ -71,6 +71,7 @@ export function useSave() {
         activeStage: data.activeStage ?? "adult",
         childStage: data.childStage ?? null,
         infantStage: data.infantStage ?? null,
+        viceDirector: data.viceDirector ?? null,
       });
 
       return true;
