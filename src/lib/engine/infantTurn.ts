@@ -25,6 +25,8 @@ import {
   CONFLICT_COST_PER_TURN,
   CONFLICT_RESOLUTION_TURNS,
 } from "@/lib/constants/crossStageConstants.ts";
+import { generateInfantPatient } from "./infantPatient.ts";
+import { INFANT_ISSUE_CONFIG } from "@/lib/constants/infantConstants.ts";
 
 export interface InfantTurnEvent {
   type: "incident" | "discharge" | "milestone" | "stress" | "conflict_resolved" | "em_change";
@@ -105,6 +107,26 @@ export function processInfantTurn(
     p.currentFloorId = getInfantFloorForEM(p.em);
 
     updatedPatients[id] = p;
+  }
+
+  // ── 신규 영유아 내담자 생성 (턴당 1~2명) ──
+  const activePatientCount = Object.keys(updatedPatients).length - dischargedIds.length;
+  const maxInfantPatients = 10;
+  if (activePatientCount < maxInfantPatients) {
+    const newCount = 1 + (Math.random() < 0.3 ? 1 : 0);
+    for (let i = 0; i < newCount && activePatientCount + i < maxInfantPatients; i++) {
+      const newPatient = generateInfantPatient(currentTurn, Date.now() + i);
+      const issueConfig = INFANT_ISSUE_CONFIG[newPatient.dominantIssue];
+      if (issueConfig.unlockTurn <= currentTurn) {
+        updatedPatients[newPatient.id] = newPatient;
+        events.push({
+          type: "em_change",
+          patientId: newPatient.id,
+          patientName: newPatient.name,
+          message: `새 영유아 내담자 ${newPatient.name}이(가) 입소했습니다`,
+        });
+      }
+    }
   }
 
   // ── 양육 스트레스 처리 ──
