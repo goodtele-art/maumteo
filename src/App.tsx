@@ -25,11 +25,15 @@ import GameOverScreen from "@/components/shared/GameOverScreen.tsx";
 import EventModal from "@/components/event/EventModal.tsx";
 import AchievementToast from "@/components/shared/AchievementToast.tsx";
 import AchievementList from "@/components/shared/AchievementList.tsx";
-import { rollForEvent } from "@/lib/engine/events.ts";
+import { rollForEvent, getSpecialEvent } from "@/lib/engine/events.ts";
 import { checkAchievements } from "@/lib/engine/achievements.ts";
 import type { AchievementDef } from "@/types/index.ts";
 import ParticleCanvas from "@/components/effects/ParticleCanvas.tsx";
 import EventFlash from "@/components/effects/EventFlash.tsx";
+import EndingScreen from "@/components/stage/EndingScreen.tsx";
+import CrisisHelpPopup from "@/components/stage/CrisisHelpPopup.tsx";
+import { ENDING_A_TURN, ENDING_S_TURN, CHILD_STAGE_OPEN_TURN, INFANT_STAGE_OPEN_TURN } from "@/lib/constants/crossStageConstants.ts";
+import { getDebugTurn, applyDebugScenario } from "@/lib/debugScenarios.ts";
 import type { ParticleEmission } from "@/components/effects/ParticleCanvas.tsx";
 import type { TurnEvent, Patient, FacilityType } from "@/types/index.ts";
 
@@ -57,12 +61,22 @@ export default function App() {
   const [showAchievements, setShowAchievements] = useState(false);
   const [particleEmission, setParticleEmission] = useState<ParticleEmission | null>(null);
   const [flashType, setFlashType] = useState<"heal" | "crisis" | null>(null);
+  const [endingType, setEndingType] = useState<"A" | "S" | null>(null);
+  const [showCrisisHelp, setShowCrisisHelp] = useState(false);
   const feedbackCounter = useRef(0);
   const prevGradeRef = useRef<string | null>(null);
+  const endingShownRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+
+    // 디버그 모드: ?debug=30 또는 ?debug=60
+    const debugTurn = getDebugTurn();
+    if (debugTurn) {
+      applyDebugScenario(debugTurn);
+      return;
+    }
 
     const loaded = load();
     if (!loaded) {
@@ -128,6 +142,10 @@ export default function App() {
     if (turn === 5) showGuide("unlock_basement");
     if (turn === 8) showGuide("unlock_upper");
 
+    // Stage 오픈 안내 (오픈 턴 직후)
+    if (turn === CHILD_STAGE_OPEN_TURN) showGuide("child_stage_open");
+    if (turn === INFANT_STAGE_OPEN_TURN) showGuide("infant_stage_open");
+
     // 평판 등급 변화 체크
     const newRep = useGameStore.getState().reputation;
     const newGrade = getReputationGrade(newRep).grade;
@@ -136,8 +154,44 @@ export default function App() {
     }
     prevGradeRef.current = newGrade;
 
+    // ── 엔딩 체크 ──
+    if (result.currentTurn === ENDING_A_TURN + 1 && !endingShownRef.current.has("A")) {
+      endingShownRef.current.add("A");
+      setEndingType("A");
+    }
+    if (result.currentTurn === ENDING_S_TURN + 1 && !endingShownRef.current.has("S")) {
+      endingShownRef.current.add("S");
+      setEndingType("S");
+    }
+
+    // ── Stage 특수 이벤트 트리거 ──
+    const storeForStage = useGameStore.getState();
+    // 턴 43: center_specialization (아동센터 특화 방향)
+    if (result.currentTurn === 43 && storeForStage.childStage && !storeForStage.childStage.specialization) {
+      const specEvent = getSpecialEvent("center_specialization");
+      if (specEvent) {
+        storeForStage.setPendingEvent({ event: specEvent, turn: result.currentTurn });
+      }
+    }
+
+    // 아동 내담자 EM >= 90 위기 시 crisis_protocol 이벤트 + 위기 도움 팝업
+    if (storeForStage.childStage) {
+      const childIncident = Object.values(storeForStage.childStage.patients).some(
+        (p) => p.em >= 90,
+      );
+      if (childIncident) {
+        const crisisEvent = getSpecialEvent("crisis_protocol");
+        if (crisisEvent && !storeForStage.pendingEvent) {
+          storeForStage.setPendingEvent({ event: crisisEvent, turn: result.currentTurn });
+        }
+        setShowCrisisHelp(true);
+      }
+    }
+
     // 이벤트 롤
-    const event = rollForEvent(result.currentTurn);
+    const hasChild = storeForStage.childStage !== null;
+    const hasInfant = storeForStage.infantStage !== null;
+    const event = rollForEvent(result.currentTurn, undefined, hasChild, hasInfant);
     if (event) {
       const storeNow = useGameStore.getState();
       const pending: import("@/types/index.ts").PendingEvent = { event: { ...event }, turn: result.currentTurn };
@@ -280,8 +334,9 @@ export default function App() {
   }, []);
 
   const handleHire = useCallback(
-    (name: string, specialty: Parameters<typeof hire>[1], skill: number, salary: number) => {
-      const ok = hire(name, specialty, skill, salary);
+    (name: string, specialty: string, skill: number, salary: number) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ok = hire(name, specialty as any, skill, salary);
       if (ok) {
         sfxHire();
         showGuide("first_hire");
@@ -299,6 +354,9 @@ export default function App() {
     setGameOver(null);
     setTreatFeedback(null);
     setBuildSlot(0);
+    setEndingType(null);
+    setShowCrisisHelp(false);
+    endingShownRef.current.clear();
     setShowIntro(true);
   }, [reset, resetGuides]);
 
@@ -385,6 +443,23 @@ export default function App() {
           onNewGame={handleNewGame}
         />
       )}
+
+      {endingType && (
+        <EndingScreen
+          endingType={endingType}
+          stats={{
+            totalDischarges: 0,
+            avgTreatmentTurns: 0,
+            incidents: 0,
+            reputation: useGameStore.getState().reputation,
+            gold: useGameStore.getState().gold,
+          }}
+          onContinue={() => setEndingType(null)}
+          onNewGame={handleNewGame}
+        />
+      )}
+
+      {showCrisisHelp && <CrisisHelpPopup onClose={() => setShowCrisisHelp(false)} />}
 
       <EventModal />
       <GuideModal guide={currentGuide} onDismiss={dismissGuide} />

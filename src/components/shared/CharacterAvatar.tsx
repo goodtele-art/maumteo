@@ -1,26 +1,15 @@
 import { useState } from "react";
-import { getPatientAsset, emToEmotion } from "@/lib/assetMap.ts";
-import type { DominantIssue } from "@/types/index.ts";
+import { getPatientAsset, emToEmotion, ISSUE_EMOJI } from "@/lib/assetMap.ts";
+import type { AnyIssue, EmotionState } from "@/lib/assetMap.ts";
 
-const ISSUE_EMOJI: Record<string, string> = {
-  depression: "😢",
-  anxiety: "😰",
-  relationship: "😔",
-  obsession: "😣",
-  trauma: "😨",
-  addiction: "😵",
-  personality: "😤",
-  psychosis: "🌀",
-};
-
-const EMOTION_COLORS: Record<string, string> = {
+const EMOTION_COLORS: Record<EmotionState, string> = {
   calm: "bg-teal-800/40 border-teal-600/30",
   neutral: "bg-sky-800/40 border-sky-600/30",
   distress: "bg-red-800/40 border-red-600/30",
 };
 
 interface CharacterAvatarProps {
-  issue: DominantIssue;
+  issue: AnyIssue;
   em: number;
   size?: number;
 }
@@ -38,12 +27,12 @@ export default function CharacterAvatar({ issue, em, size = 36 }: CharacterAvata
         width={size}
         height={size}
         className="rounded-lg object-cover"
+        loading="lazy"
         onError={() => setImgError(true)}
       />
     );
   }
 
-  // 플레이스홀더: 감정 컬러 배경 + 이모지
   return (
     <div
       className={`flex items-center justify-center rounded-lg border ${EMOTION_COLORS[emotion]}`}

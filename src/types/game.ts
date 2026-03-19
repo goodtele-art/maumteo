@@ -69,8 +69,10 @@ export interface GameState {
   notifications: Notification[];
 }
 
+import type { StageId, ChildStageState, InfantStageState } from "./stage.ts";
+
 export interface SaveData {
-  version: 1;
+  version: 1 | 2;
   timestamp: number;
   currentTurn: number;
   gold: number;
@@ -81,4 +83,8 @@ export interface SaveData {
   facilities: Record<string, Facility>;
   counselors: Record<string, Counselor>;
   turnLog: TurnLogEntry[];
+  // Stage 2-3 확장 (v2)
+  activeStage?: StageId;
+  childStage?: ChildStageState | null;
+  infantStage?: InfantStageState | null;
 }

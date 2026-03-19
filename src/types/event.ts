@@ -4,7 +4,7 @@ export interface EventChoice {
 }
 
 export interface EventEffect {
-  type: "gold" | "reputation" | "ap" | "em_patient" | "counselor_skill" | "counselor_leave";
+  type: "gold" | "reputation" | "ap" | "em_patient" | "counselor_skill" | "counselor_leave" | "parent_involvement" | "patient_limit";
   value: number;
   /** em_patient: 랜덤 환자 1명, counselor_skill: 랜덤 상담사 1명 */
   targetRandom?: boolean;

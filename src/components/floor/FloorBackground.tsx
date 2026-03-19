@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { getFloorBackground } from "@/lib/assetMap.ts";
-import type { FloorId } from "@/types/index.ts";
+import type { AnyFloorId } from "@/lib/assetMap.ts";
 
 interface FloorBackgroundProps {
-  floorId: FloorId;
+  floorId: AnyFloorId;
   children: React.ReactNode;
 }
 
@@ -24,7 +24,8 @@ export default function FloorBackground({ floorId, children }: FloorBackgroundPr
           <img
             src={src}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-40"
+            className="absolute inset-0 w-full h-full object-cover opacity-40 transition-opacity duration-500"
+            loading="lazy"
             onError={() => setImgError(true)}
           />
           <div className="absolute inset-0" style={{ background: overlayGradient }} />

@@ -24,7 +24,6 @@ function sortPatients(patients: Patient[], mode: SortMode, currentTurn: number):
   if (mode === "default") return patients;
   return [...patients].sort((a, b) => {
     if (mode === "em_high") return b.em - a.em;
-    // neglected: 마지막 상담 이후 경과 턴 (상담 0회면 상담 시작 이후 전체)
     const aNeglect = currentTurn - a.turnAdmitted - a.treatmentCount;
     const bNeglect = currentTurn - b.turnAdmitted - b.treatmentCount;
     return bNeglect - aNeglect;
@@ -37,10 +36,41 @@ const SORT_LABELS: Record<SortMode, string> = {
   neglected: "방치순",
 };
 
+/** 스테이지에 따라 적절한 내담자/시설/층 데이터를 반환 */
+function useStageData() {
+  const activeStage = useGameStore((s) => s.activeStage);
+  const adultFloor = useGameStore((s) => s.selectedFloorId);
+  const adultFacilities = useGameStore((s) => s.facilities);
+  const adultPatients = useGameStore((s) => s.patients);
+  const childStage = useGameStore((s) => s.childStage);
+  const infantStage = useGameStore((s) => s.infantStage);
+
+  if (activeStage === "child" && childStage) {
+    return {
+      selectedFloorId: childStage.selectedFloorId as string,
+      facilities: childStage.facilities as unknown as Record<string, import("@/types/index.ts").Facility>,
+      patients: childStage.patients as unknown as Record<string, Patient>,
+      stageLabel: "아동센터",
+    };
+  }
+  if (activeStage === "infant" && infantStage) {
+    return {
+      selectedFloorId: infantStage.selectedFloorId as string,
+      facilities: infantStage.facilities as unknown as Record<string, import("@/types/index.ts").Facility>,
+      patients: infantStage.patients as unknown as Record<string, Patient>,
+      stageLabel: "영유아센터",
+    };
+  }
+  return {
+    selectedFloorId: adultFloor,
+    facilities: adultFacilities,
+    patients: adultPatients,
+    stageLabel: "성인센터",
+  };
+}
+
 export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, onFire }: FloorViewProps) {
-  const selectedFloorId = useGameStore((s) => s.selectedFloorId);
-  const facilities = useGameStore((s) => s.facilities);
-  const patients = useGameStore((s) => s.patients);
+  const { selectedFloorId, facilities, patients } = useStageData();
   const currentTurn = useGameStore((s) => s.currentTurn);
   const [sortMode, setSortMode] = useState<SortMode>("default");
 
@@ -70,9 +100,9 @@ export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, on
   return (
     <div className="flex flex-col lg:flex-row gap-4">
       <div className="flex-1 min-w-0">
-        <FloorBackground floorId={selectedFloorId}>
+        <FloorBackground floorId={selectedFloorId as import("@/types/index.ts").FloorId}>
           <div className="p-3">
-            <FloorHeader floorId={selectedFloorId} />
+            <FloorHeader floorId={selectedFloorId as import("@/types/index.ts").FloorId} />
 
             <div className="mb-4">
               <h3 className="text-sm text-theme-tertiary mb-2">시설</h3>

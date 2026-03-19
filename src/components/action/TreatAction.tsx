@@ -2,9 +2,19 @@ import { useState } from "react";
 import { useGameStore } from "@/store/gameStore.ts";
 import Modal from "@/components/shared/Modal.tsx";
 import { ISSUE_LABELS } from "@/lib/engine/patient.ts";
+import { CHILD_ISSUE_LABELS } from "@/lib/engine/childPatient.ts";
+import { INFANT_ISSUE_LABELS } from "@/lib/engine/infantPatient.ts";
+
+const ALL_ISSUE_LABELS: Record<string, string> = { ...ISSUE_LABELS, ...CHILD_ISSUE_LABELS, ...INFANT_ISSUE_LABELS };
 import { AP_COST, SPECIALTY_CONFIG, FACILITY_TEMPLATES, getMatchMultiplier } from "@/lib/constants.ts";
-import type { Counselor } from "@/types/index.ts";
+import { CHILD_FACILITY_TEMPLATES, CHILD_SPECIALTY_CONFIG, getChildMatchMultiplier } from "@/lib/constants/childConstants.ts";
+import { INFANT_FACILITY_TEMPLATES, INFANT_SPECIALTY_CONFIG, getInfantMatchMultiplier } from "@/lib/constants/infantConstants.ts";
+import type { Counselor, Facility, Patient } from "@/types/index.ts";
 import type { DominantIssue } from "@/types/patient.ts";
+import type { ChildSpecialty } from "@/types/child/counselor.ts";
+import type { ChildIssue } from "@/types/child/patient.ts";
+import type { InfantSpecialty } from "@/types/infant/counselor.ts";
+import type { InfantIssue } from "@/types/infant/patient.ts";
 
 interface TreatActionProps {
   open: boolean;
@@ -21,12 +31,62 @@ function getMatchLabel(mult: number): { text: string; color: string } {
 
 type Step = "counselor" | "facility" | "group";
 
+const ALL_FACILITY_TEMPLATES: Record<string, { label: string; description: string; effect: string }> = {
+  ...FACILITY_TEMPLATES,
+  ...CHILD_FACILITY_TEMPLATES as unknown as Record<string, { label: string; description: string; effect: string }>,
+  ...INFANT_FACILITY_TEMPLATES as unknown as Record<string, { label: string; description: string; effect: string }>,
+};
+
+function getStageMatchMultiplier(stage: string, specialty: string, issue: string): number {
+  if (stage === "child") return getChildMatchMultiplier(specialty as ChildSpecialty, issue as ChildIssue);
+  if (stage === "infant") return getInfantMatchMultiplier(specialty as InfantSpecialty, issue as InfantIssue);
+  return getMatchMultiplier(specialty as import("@/types/counselor.ts").CounselorSpecialty, issue as DominantIssue);
+}
+
+function getStageSpecialtyLabel(stage: string, specialty: string): string {
+  if (stage === "child") {
+    const config = CHILD_SPECIALTY_CONFIG[specialty as ChildSpecialty];
+    return config?.label ?? specialty;
+  }
+  if (stage === "infant") {
+    const config = INFANT_SPECIALTY_CONFIG[specialty as InfantSpecialty];
+    return config?.label ?? specialty;
+  }
+  const config = SPECIALTY_CONFIG[specialty as import("@/types/counselor.ts").CounselorSpecialty];
+  return config?.label ?? specialty;
+}
+
 export default function TreatAction({ open, onClose, preselectedPatientId, onTreat }: TreatActionProps) {
-  const patients = useGameStore((s) => s.patients);
-  const counselors = useGameStore((s) => s.counselors);
-  const facilities = useGameStore((s) => s.facilities);
-  const selectedFloorId = useGameStore((s) => s.selectedFloorId);
-  const ap = useGameStore((s) => s.ap);
+  const activeStage = useGameStore((s) => s.activeStage);
+  const childStage = useGameStore((s) => s.childStage);
+  const infantStage = useGameStore((s) => s.infantStage);
+  const adultPatients = useGameStore((s) => s.patients);
+  const adultCounselors = useGameStore((s) => s.counselors);
+  const adultFacilities = useGameStore((s) => s.facilities);
+  const adultSelectedFloorId = useGameStore((s) => s.selectedFloorId);
+  const adultAp = useGameStore((s) => s.ap);
+
+  // Stage-aware data
+  const patients: Record<string, Patient> =
+    activeStage === "child" && childStage ? childStage.patients as unknown as Record<string, Patient>
+    : activeStage === "infant" && infantStage ? infantStage.patients as unknown as Record<string, Patient>
+    : adultPatients;
+  const counselors =
+    activeStage === "child" && childStage ? childStage.counselors as unknown as Record<string, Counselor>
+    : activeStage === "infant" && infantStage ? infantStage.counselors as unknown as Record<string, Counselor>
+    : adultCounselors;
+  const facilities: Record<string, Facility> =
+    activeStage === "child" && childStage ? childStage.facilities as unknown as Record<string, Facility>
+    : activeStage === "infant" && infantStage ? infantStage.facilities as unknown as Record<string, Facility>
+    : adultFacilities;
+  const selectedFloorId =
+    activeStage === "child" && childStage ? childStage.selectedFloorId
+    : activeStage === "infant" && infantStage ? infantStage.selectedFloorId
+    : adultSelectedFloorId;
+  const ap =
+    activeStage === "child" && childStage ? childStage.ap
+    : activeStage === "infant" && infantStage ? infantStage.ap
+    : adultAp;
 
   const [selectedCounselorId, setSelectedCounselorId] = useState<string | null>(null);
   const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
@@ -35,7 +95,8 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
 
   const patient = preselectedPatientId ? patients[preselectedPatientId] : null;
   const counselorList = Object.values(counselors).filter((c) => !c.onLeave);
-  const floorFacilities = Object.values(facilities).filter((f) => f.floorId === selectedFloorId);
+  // 치료 시설 선택: 센터의 모든 시설 표시 (현재 층에 국한하지 않음)
+  const floorFacilities = Object.values(facilities);
   const canTreat = ap >= AP_COST.treat;
 
   const selectedCounselor = selectedCounselorId ? counselors[selectedCounselorId] : null;
@@ -108,7 +169,7 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
         <div className="mb-3 p-2 rounded bg-surface-card/50 text-sm">
           <span className="font-medium">{patient.name}</span>{" "}
           <span className="text-xs text-theme-tertiary">
-            ({ISSUE_LABELS[patient.dominantIssue]}, EM {patient.em})
+            ({ALL_ISSUE_LABELS[patient.dominantIssue]}, EM {patient.em})
           </span>
         </div>
 
@@ -136,6 +197,7 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
                 issue={patient.dominantIssue}
                 disabled={!canTreat}
                 onSelect={() => handleSelectCounselor(c.id)}
+                stage={activeStage}
               />
             ))}
           </div>
@@ -157,7 +219,7 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
 
         <div className="space-y-1.5 max-h-60 overflow-y-auto">
           {floorFacilities.map((fac) => {
-            const template = FACILITY_TEMPLATES[fac.type];
+            const template = ALL_FACILITY_TEMPLATES[fac.type] ?? FACILITY_TEMPLATES[fac.type as import("@/types/index.ts").FacilityType];
             const isGroup = fac.type === "group_room";
             return (
               <button
@@ -214,12 +276,12 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
           <span className="text-theme-tertiary">주 내담자:</span>{" "}
           <span className="font-medium">{patient.name}</span>{" "}
           <span className="text-xs text-theme-tertiary">
-            ({ISSUE_LABELS[patient.dominantIssue]}, EM {patient.em})
+            ({ALL_ISSUE_LABELS[patient.dominantIssue]}, EM {patient.em})
           </span>
         </div>
 
         <div className="text-xs text-theme-tertiary mb-2">
-          {FACILITY_TEMPLATES[selectedFacility.type].label} Lv.{selectedFacility.level} — 추가 {maxExtra}명까지
+          {(ALL_FACILITY_TEMPLATES[selectedFacility.type]?.label ?? selectedFacility.type)} Lv.{selectedFacility.level} — 추가 {maxExtra}명까지
         </div>
 
         <div className="space-y-1.5 max-h-48 overflow-y-auto">
@@ -243,7 +305,7 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium">{p.name}</span>{" "}
                   <span className="text-xs text-theme-tertiary">
-                    {ISSUE_LABELS[p.dominantIssue]}
+                    {ALL_ISSUE_LABELS[p.dominantIssue]}
                   </span>
                 </div>
                 <span className="text-xs text-theme-tertiary">EM {p.em}</span>
@@ -282,15 +344,17 @@ function CounselorOption({
   issue,
   disabled,
   onSelect,
+  stage,
 }: {
   counselor: Counselor;
   issue: DominantIssue;
   disabled: boolean;
   onSelect: () => void;
+  stage: string;
 }) {
-  const mult = getMatchMultiplier(counselor.specialty, issue);
+  const mult = getStageMatchMultiplier(stage, counselor.specialty, issue);
   const match = getMatchLabel(mult);
-  const config = SPECIALTY_CONFIG[counselor.specialty];
+  const specialtyLabel = getStageSpecialtyLabel(stage, counselor.specialty);
 
   return (
     <button
@@ -306,9 +370,9 @@ function CounselorOption({
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{counselor.name}</span>
           <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${match.color}`}>{match.text}</span>
-          <span className="text-xs text-theme-secondary">×{mult.toFixed(2)}</span>
+          <span className="text-xs text-theme-secondary">x{mult.toFixed(2)}</span>
         </div>
-        <div className="text-xs text-sky-400 mt-0.5">{config.label} · 실력 {counselor.skill}</div>
+        <div className="text-xs text-sky-400 mt-0.5">{specialtyLabel} · 실력 {counselor.skill}</div>
       </div>
       <div className="text-xs text-theme-secondary shrink-0">
         상담 {counselor.treatmentCount ?? 0}회

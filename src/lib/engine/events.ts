@@ -1,4 +1,6 @@
 import type { GameEvent } from "@/types/index.ts";
+import { CHILD_EVENTS } from "./childEvents.ts";
+import { INFANT_EVENTS } from "./infantEvents.ts";
 
 /** 이벤트 정의 5종 */
 const EVENT_POOL: GameEvent[] = [
@@ -49,8 +51,16 @@ const EVENT_POOL: GameEvent[] = [
   },
 ];
 
+/** 특별 이벤트 ID (롤 대상에서 제외) */
+const SPECIAL_EVENT_IDS = new Set(["center_specialization", "crisis_protocol"]);
+
 /** 해당 턴에 이벤트가 발생하는지 판정 (턴 2부터, 확률 ~30%) */
-export function rollForEvent(turn: number, seed?: number): GameEvent | null {
+export function rollForEvent(
+  turn: number,
+  seed?: number,
+  hasChildStage?: boolean,
+  hasInfantStage?: boolean,
+): GameEvent | null {
   if (turn < 2) return null;
 
   const rand = seed !== undefined
@@ -59,10 +69,27 @@ export function rollForEvent(turn: number, seed?: number): GameEvent | null {
 
   if (rand > 0.30) return null;
 
+  // 현재 턴에 맞는 이벤트 풀 구성
+  let pool: GameEvent[] = [...EVENT_POOL];
+  if (hasChildStage) {
+    pool = pool.concat(
+      CHILD_EVENTS.filter((e) => !SPECIAL_EVENT_IDS.has(e.id)),
+    );
+  }
+  if (hasInfantStage) {
+    pool = pool.concat(INFANT_EVENTS);
+  }
+
   const idx = Math.floor(
-    (seed !== undefined ? ((seed * 7 + turn * 13) % EVENT_POOL.length + EVENT_POOL.length) % EVENT_POOL.length : Math.random() * EVENT_POOL.length),
+    (seed !== undefined ? ((seed * 7 + turn * 13) % pool.length + pool.length) % pool.length : Math.random() * pool.length),
   );
-  return EVENT_POOL[idx]!;
+  return pool[idx]!;
+}
+
+/** 특수 이벤트를 ID로 가져오기 */
+export function getSpecialEvent(eventId: string): GameEvent | null {
+  const all = [...CHILD_EVENTS, ...INFANT_EVENTS];
+  return all.find((e) => e.id === eventId) ?? null;
 }
 
 /** 이벤트 목록 반환 (테스트/표시용) */

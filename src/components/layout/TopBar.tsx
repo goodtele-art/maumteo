@@ -17,8 +17,19 @@ export default function TopBar({ onEndTurn, onOpenMenu, onToggleSidebar, theme, 
   const currentTurn = useGameStore((s) => s.currentTurn);
   const gold = useGameStore((s) => s.gold);
   const reputation = useGameStore((s) => s.reputation);
-  const ap = useGameStore((s) => s.ap);
-  const maxAp = useGameStore((s) => s.maxAp);
+  const adultAp = useGameStore((s) => s.ap);
+  const adultMaxAp = useGameStore((s) => s.maxAp);
+  const activeStage = useGameStore((s) => s.activeStage);
+  const childStage = useGameStore((s) => s.childStage);
+  const infantStage = useGameStore((s) => s.infantStage);
+
+  // 활성 센터의 AP 표시
+  const ap = activeStage === "child" && childStage ? childStage.ap
+    : activeStage === "infant" && infantStage ? infantStage.ap
+    : adultAp;
+  const maxAp = activeStage === "child" && childStage ? childStage.maxAp
+    : activeStage === "infant" && infantStage ? infantStage.maxAp
+    : adultMaxAp;
 
   return (
     <header className="flex items-center justify-between px-3 md:px-4 py-2.5 md:py-3 bg-surface-raised border-b border-theme-default gap-2 backdrop-blur-md">

@@ -4,13 +4,34 @@ import { AP_COST } from "@/lib/constants.ts";
 import { IconTreat, IconBuild, IconHire } from "@/components/shared/GameIcons.tsx";
 
 export default function ActionPanel() {
-  const ap = useGameStore((s) => s.ap);
+  const adultAp = useGameStore((s) => s.ap);
+  const activeStage = useGameStore((s) => s.activeStage);
+  const childStage = useGameStore((s) => s.childStage);
+  const infantStage = useGameStore((s) => s.infantStage);
   const selectedFloorId = useGameStore((s) => s.selectedFloorId);
   const patients = useGameStore((s) => s.patients);
   const openModal = useGameStore((s) => s.openModal);
 
-  const floorPatients = Object.values(patients).filter(
-    (p) => p.currentFloorId === selectedFloorId,
+  // 활성 센터의 AP
+  const ap = activeStage === "child" && childStage ? childStage.ap
+    : activeStage === "infant" && infantStage ? infantStage.ap
+    : adultAp;
+
+  // 활성 센터의 내담자
+  const stagePatients = activeStage === "child" && childStage
+    ? Object.values(childStage.patients)
+    : activeStage === "infant" && infantStage
+      ? Object.values(infantStage.patients)
+      : Object.values(patients);
+
+  const currentFloor = activeStage === "child" && childStage
+    ? childStage.selectedFloorId
+    : activeStage === "infant" && infantStage
+      ? infantStage.selectedFloorId
+      : selectedFloorId;
+
+  const floorPatients = stagePatients.filter(
+    (p) => p.currentFloorId === currentFloor,
   );
 
   const actions: Array<{

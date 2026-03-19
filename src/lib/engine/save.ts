@@ -4,9 +4,9 @@ import type { Patient } from "@/types/patient.ts";
 import type { Facility } from "@/types/facility.ts";
 import type { Counselor } from "@/types/counselor.ts";
 
-export function serialize(state: GameState): string {
+export function serialize(state: GameState & { activeStage?: string; childStage?: unknown; infantStage?: unknown }): string {
   const data: SaveData = {
-    version: 1,
+    version: 2,
     timestamp: Date.now(),
     currentTurn: state.currentTurn,
     gold: state.gold,
@@ -17,6 +17,9 @@ export function serialize(state: GameState): string {
     facilities: state.facilities,
     counselors: state.counselors,
     turnLog: state.turnLog,
+    activeStage: (state.activeStage as SaveData["activeStage"]) ?? "adult",
+    childStage: (state.childStage as SaveData["childStage"]) ?? null,
+    infantStage: (state.infantStage as SaveData["infantStage"]) ?? null,
   };
   return JSON.stringify(data);
 }
@@ -38,7 +41,7 @@ export function validateSaveData(data: unknown): data is SaveData {
   if (typeof data !== "object" || data === null) return false;
   const obj = data as Record<string, unknown>;
   return (
-    obj.version === 1 &&
+    (obj.version === 1 || obj.version === 2) &&
     typeof obj.timestamp === "number" &&
     typeof obj.currentTurn === "number" &&
     typeof obj.gold === "number" &&

@@ -1,5 +1,7 @@
 import type { AchievementDef } from "@/types/index.ts";
 import type { GameState } from "@/types/index.ts";
+import { CHILD_ACHIEVEMENTS } from "./childAchievements.ts";
+import { INFANT_ACHIEVEMENTS } from "./infantAchievements.ts";
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   {
@@ -88,7 +90,7 @@ const CHECKERS: Record<string, Checker> = {
 
 /** 아직 달성하지 않은 업적 중 조건을 충족한 것들 반환 */
 export function checkAchievements(
-  state: GameState,
+  state: GameState & { childStage?: unknown; infantStage?: unknown },
   unlockedIds: string[],
 ): AchievementDef[] {
   const unlocked = new Set(unlockedIds);
@@ -121,8 +123,17 @@ export function checkAchievements(
 
   const ctx: CheckContext = { state, totalDischarges, totalTreatments, incidentFreeTurns };
 
+  // 기본 업적 + Stage 2-3 업적 결합
+  const allAchievements = [...ACHIEVEMENTS];
+  if (state.childStage) {
+    allAchievements.push(...CHILD_ACHIEVEMENTS);
+  }
+  if (state.infantStage) {
+    allAchievements.push(...INFANT_ACHIEVEMENTS);
+  }
+
   const newlyUnlocked: AchievementDef[] = [];
-  for (const achievement of ACHIEVEMENTS) {
+  for (const achievement of allAchievements) {
     if (unlocked.has(achievement.id)) continue;
     const checker = CHECKERS[achievement.id];
     if (checker && checker(ctx)) {

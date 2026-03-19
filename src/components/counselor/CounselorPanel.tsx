@@ -2,20 +2,62 @@ import { useState } from "react";
 import { AnimatePresence, m } from "motion/react";
 import { useGameStore } from "@/store/gameStore.ts";
 import { SPECIALTY_CONFIG } from "@/lib/constants.ts";
+import { CHILD_SPECIALTY_CONFIG } from "@/lib/constants/childConstants.ts";
+import { INFANT_SPECIALTY_CONFIG } from "@/lib/constants/infantConstants.ts";
 import { ISSUE_LABELS } from "@/lib/engine/patient.ts";
+import { CHILD_ISSUE_LABELS } from "@/lib/engine/childPatient.ts";
+import { INFANT_ISSUE_LABELS } from "@/lib/engine/infantPatient.ts";
 import { IconHire } from "@/components/shared/GameIcons.tsx";
 import CounselorAvatar from "@/components/shared/CounselorAvatar.tsx";
-import type { Counselor } from "@/types/index.ts";
+import type { CounselorSpecialty } from "@/types/counselor.ts";
+import type { ChildSpecialty } from "@/types/child/counselor.ts";
+import type { InfantSpecialty } from "@/types/infant/counselor.ts";
 
 interface CounselorPanelProps {
   onFire: (counselorId: string) => void;
 }
 
+type AnyCounselor = {
+  id: string;
+  name: string;
+  specialty: string;
+  skill: number;
+  salary: number;
+  treatmentCount: number;
+  onLeave?: boolean;
+};
+
+function getSpecialtyInfo(specialty: string): { label: string; optimalLabels: string } {
+  if (specialty in SPECIALTY_CONFIG) {
+    const cfg = SPECIALTY_CONFIG[specialty as CounselorSpecialty];
+    return { label: cfg.label, optimalLabels: cfg.optimal.map((i) => ISSUE_LABELS[i]).join(", ") };
+  }
+  if (specialty in CHILD_SPECIALTY_CONFIG) {
+    const cfg = CHILD_SPECIALTY_CONFIG[specialty as ChildSpecialty];
+    const labels = cfg.optimalIssues.length > 0
+      ? cfg.optimalIssues.map((i) => CHILD_ISSUE_LABELS[i]).join(", ")
+      : "라포 ×1.3 (범용)";
+    return { label: cfg.label, optimalLabels: labels };
+  }
+  if (specialty in INFANT_SPECIALTY_CONFIG) {
+    const cfg = INFANT_SPECIALTY_CONFIG[specialty as InfantSpecialty];
+    return { label: cfg.label, optimalLabels: cfg.optimalIssues.map((i) => INFANT_ISSUE_LABELS[i]).join(", ") };
+  }
+  return { label: specialty, optimalLabels: "" };
+}
+
 export default function CounselorPanel({ onFire }: CounselorPanelProps) {
-  const counselors = useGameStore((s) => s.counselors);
+  const activeStage = useGameStore((s) => s.activeStage);
+  const adultCounselors = useGameStore((s) => s.counselors);
+  const childStage = useGameStore((s) => s.childStage);
+  const infantStage = useGameStore((s) => s.infantStage);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  const list = Object.values(counselors);
+  const list: AnyCounselor[] = activeStage === "child" && childStage
+    ? Object.values(childStage.counselors)
+    : activeStage === "infant" && infantStage
+      ? Object.values(infantStage.counselors)
+      : Object.values(adultCounselors);
 
   return (
     <div className="glass-card rounded-lg p-3 mt-3">
@@ -52,14 +94,14 @@ export default function CounselorPanel({ onFire }: CounselorPanelProps) {
 }
 
 interface CounselorRowProps {
-  counselor: Counselor;
+  counselor: AnyCounselor;
   isConfirming: boolean;
   onConfirmToggle: () => void;
   onFire: () => void;
 }
 
 function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: CounselorRowProps) {
-  const config = SPECIALTY_CONFIG[counselor.specialty];
+  const info = getSpecialtyInfo(counselor.specialty);
 
   return (
     <m.div
@@ -70,11 +112,9 @@ function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: Coun
       className="bg-surface-card/40 rounded-lg p-2"
     >
       <div className={`flex gap-3 ${counselor.onLeave ? "opacity-50" : ""}`}>
-        {/* 큰 아바타 */}
         <div className="shrink-0 flex items-start pt-0.5">
-          <CounselorAvatar specialty={counselor.specialty} size={52} />
+          <CounselorAvatar specialty={counselor.specialty as CounselorSpecialty} size={52} />
         </div>
-        {/* 정보 영역 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium truncate">
@@ -83,13 +123,13 @@ function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: Coun
             </div>
             <div className="text-xs text-theme-tertiary shrink-0">실력 {counselor.skill}</div>
           </div>
-          <div className="text-xs text-sky-400/80">{config.label}</div>
+          <div className="text-xs text-sky-400/80">{info.label}</div>
           <div className="flex items-center gap-2 mt-0.5 text-xs text-theme-tertiary">
-            <span className="text-yellow-400">{counselor.salary}/턴</span>
+            <span className="text-theme-primary">{counselor.salary}/턴</span>
             <span>상담 {counselor.treatmentCount ?? 0}회</span>
           </div>
           <div className="text-xs text-theme-tertiary mt-0.5 truncate">
-            최적: {config.optimal.map((i) => ISSUE_LABELS[i]).join(", ")}
+            최적: {info.optimalLabels}
           </div>
         </div>
       </div>

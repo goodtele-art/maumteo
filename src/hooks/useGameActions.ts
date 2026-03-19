@@ -13,17 +13,127 @@ import {
   FACILITY_TEMPLATES,
   FLOORS,
   ISSUE_CONFIG,
+  SPECIALTY_CONFIG,
   getMatchMultiplier,
 } from "@/lib/constants.ts";
-import type { Facility, FacilityType, DominantIssue } from "@/types/index.ts";
+import type { Facility, FacilityType, DominantIssue, Patient } from "@/types/index.ts";
 import type { CounselorSpecialty } from "@/types/counselor.ts";
+import type { GameStore } from "@/store/gameStore.ts";
+import { CHILD_FACILITY_TEMPLATES, getChildMatchMultiplier } from "@/lib/constants/childConstants.ts";
+import { INFANT_FACILITY_TEMPLATES, getInfantMatchMultiplier } from "@/lib/constants/infantConstants.ts";
+import { getChildFloorForEM } from "@/lib/engine/childEngine.ts";
+import { getInfantFloorForEM } from "@/lib/engine/infantEngine.ts";
+
+// ── 스테이지 인식 헬퍼 ──
+
+function getStagePatient(s: GameStore, patientId: string): Patient | undefined {
+  if (s.activeStage === "child" && s.childStage)
+    return s.childStage.patients[patientId] as unknown as Patient;
+  if (s.activeStage === "infant" && s.infantStage)
+    return s.infantStage.patients[patientId] as unknown as Patient;
+  return s.patients[patientId];
+}
+
+function getStageCounselor(s: GameStore, counselorId: string) {
+  if (s.activeStage === "child" && s.childStage) return s.childStage.counselors[counselorId];
+  if (s.activeStage === "infant" && s.infantStage) return s.infantStage.counselors[counselorId];
+  return s.counselors[counselorId];
+}
+
+function getStageFacility(s: GameStore, facilityId: string) {
+  if (s.activeStage === "child" && s.childStage)
+    return s.childStage.facilities[facilityId] as unknown as Facility;
+  if (s.activeStage === "infant" && s.infantStage)
+    return s.infantStage.facilities[facilityId] as unknown as Facility;
+  return s.facilities[facilityId];
+}
+
+function getStageAp(s: GameStore): number {
+  if (s.activeStage === "child" && s.childStage) return s.childStage.ap;
+  if (s.activeStage === "infant" && s.infantStage) return s.infantStage.ap;
+  return s.ap;
+}
+
+function getStageFloorForEM(stage: string, em: number) {
+  if (stage === "child") return getChildFloorForEM(em);
+  if (stage === "infant") return getInfantFloorForEM(em);
+  return getFloorForEM(em);
+}
+
+function setStagePatient(prev: GameStore, patientId: string, updates: Partial<Patient>): Partial<GameStore> {
+  if (prev.activeStage === "child" && prev.childStage) {
+    const p = prev.childStage.patients[patientId];
+    if (!p) return {};
+    return {
+      childStage: {
+        ...prev.childStage,
+        patients: { ...prev.childStage.patients, [patientId]: { ...p, ...updates } as typeof p },
+      },
+    };
+  }
+  if (prev.activeStage === "infant" && prev.infantStage) {
+    const p = prev.infantStage.patients[patientId];
+    if (!p) return {};
+    return {
+      infantStage: {
+        ...prev.infantStage,
+        patients: { ...prev.infantStage.patients, [patientId]: { ...p, ...updates } as typeof p },
+      },
+    };
+  }
+  const p = prev.patients[patientId];
+  if (!p) return {};
+  return { patients: { ...prev.patients, [patientId]: { ...p, ...updates } } };
+}
+
+function spendStageAp(prev: GameStore, cost: number): Partial<GameStore> {
+  if (prev.activeStage === "child" && prev.childStage) {
+    return { childStage: { ...prev.childStage, ap: prev.childStage.ap - cost } };
+  }
+  if (prev.activeStage === "infant" && prev.infantStage) {
+    return { infantStage: { ...prev.infantStage, ap: prev.infantStage.ap - cost } };
+  }
+  return { ap: prev.ap - cost };
+}
+
+function getStageCounselors(s: GameStore): Record<string, { id: string; name: string; specialty: string; skill: number; treatmentCount: number; onLeave?: boolean }> {
+  if (s.activeStage === "child" && s.childStage) return s.childStage.counselors;
+  if (s.activeStage === "infant" && s.infantStage) return s.infantStage.counselors;
+  return s.counselors;
+}
+
+function setStageCounselorUpdate(prev: GameStore, counselorId: string, updates: Record<string, unknown>): Partial<GameStore> {
+  if (prev.activeStage === "child" && prev.childStage) {
+    const c = prev.childStage.counselors[counselorId];
+    if (!c) return {};
+    return {
+      childStage: {
+        ...prev.childStage,
+        counselors: { ...prev.childStage.counselors, [counselorId]: { ...c, ...updates } as typeof c },
+      },
+    };
+  }
+  if (prev.activeStage === "infant" && prev.infantStage) {
+    const c = prev.infantStage.counselors[counselorId];
+    if (!c) return {};
+    return {
+      infantStage: {
+        ...prev.infantStage,
+        counselors: { ...prev.infantStage.counselors, [counselorId]: { ...c, ...updates } as typeof c },
+      },
+    };
+  }
+  const c = prev.counselors[counselorId];
+  if (!c) return {};
+  return { counselors: { ...prev.counselors, [counselorId]: { ...c, ...updates } as typeof c } };
+}
 
 // ── 헬퍼 ──
 function getFloorFacilities(facilities: Record<string, Facility>, floorId: string) {
   return Object.values(facilities).filter((f) => f.floorId === floorId);
 }
 
-function getFloorEffects(facilities: Record<string, Facility>, floorId: string): Set<string> {
+export function getFloorEffects(facilities: Record<string, Facility>, floorId: string): Set<string> {
   const effects = new Set<string>();
   for (const f of getFloorFacilities(facilities, floorId)) {
     const t = FACILITY_TEMPLATES[f.type];
@@ -48,12 +158,28 @@ function calcFacilityTreatEffect(
   rapport: number,
   specialty: CounselorSpecialty | undefined,
   issue: DominantIssue,
+  stage?: string,
 ): { finalEffect: number; varianceEffect: number; matchMult: number; issueBonus: number; synergy: number } {
-  const template = facility ? FACILITY_TEMPLATES[facility.type] : null;
+  // 통합 템플릿 조회
+  const allTemplates: Record<string, typeof FACILITY_TEMPLATES[FacilityType]> = {
+    ...FACILITY_TEMPLATES,
+    ...CHILD_FACILITY_TEMPLATES as unknown as Record<string, typeof FACILITY_TEMPLATES[FacilityType]>,
+    ...INFANT_FACILITY_TEMPLATES as unknown as Record<string, typeof FACILITY_TEMPLATES[FacilityType]>,
+  };
+  const template = facility ? (allTemplates[facility.type] ?? null) : null;
   const baseReduction = facility ? facility.emReduction : 8;
 
-  // 전공 매칭 배율
-  let matchMult = specialty ? getMatchMultiplier(specialty, issue) : 0.85;
+  // 전공 매칭 배율 (스테이지 인식)
+  let matchMult = 0.85;
+  if (specialty) {
+    if (stage === "child") {
+      matchMult = getChildMatchMultiplier(specialty as import("@/types/child/counselor.ts").ChildSpecialty, issue as import("@/types/child/patient.ts").ChildIssue);
+    } else if (stage === "infant") {
+      matchMult = getInfantMatchMultiplier(specialty as import("@/types/infant/counselor.ts").InfantSpecialty, issue as import("@/types/infant/patient.ts").InfantIssue);
+    } else if (specialty in SPECIALTY_CONFIG) {
+      matchMult = getMatchMultiplier(specialty as CounselorSpecialty, issue as DominantIssue);
+    }
+  }
   // 활동치료실: 불일치 페널티 제거
   if (matchMult < 1.0 && template?.effect === "remove_mismatch_penalty") {
     matchMult = 1.0;
@@ -104,73 +230,75 @@ export function useGameActions() {
     groupPatientIds?: string[],
   ): TreatResult | false => {
     const s = useGameStore.getState();
-    if (s.ap < AP_COST.treat) return false;
+    const stage = s.activeStage;
+    if (getStageAp(s) < AP_COST.treat) return false;
 
-    const patient = s.patients[patientId];
+    const patient = getStagePatient(s, patientId);
     if (!patient) return false;
 
-    // 시설 조회
-    const facility = facilityId ? s.facilities[facilityId] ?? null : null;
-    const template = facility ? FACILITY_TEMPLATES[facility.type] : null;
+    // 시설 조회 (스테이지 인식)
+    const facility = facilityId ? getStageFacility(s, facilityId) ?? null : null;
+    const allTemplates: Record<string, typeof FACILITY_TEMPLATES[FacilityType]> = {
+      ...FACILITY_TEMPLATES,
+      ...CHILD_FACILITY_TEMPLATES as unknown as Record<string, typeof FACILITY_TEMPLATES[FacilityType]>,
+      ...INFANT_FACILITY_TEMPLATES as unknown as Record<string, typeof FACILITY_TEMPLATES[FacilityType]>,
+    };
+    const template = facility ? (allTemplates[facility.type] ?? FACILITY_TEMPLATES[facility.type as FacilityType]) : null;
 
-    // 상담사 선택
-    let counselor: typeof s.counselors[string] | undefined;
-    if (counselorId && s.counselors[counselorId]) {
-      counselor = s.counselors[counselorId];
+    // 상담사 선택 (스테이지 인식)
+    const stageCounselors = getStageCounselors(s);
+    let counselor: { id: string; name: string; specialty: string; skill: number; treatmentCount: number; onLeave?: boolean } | undefined;
+    if (counselorId && stageCounselors[counselorId]) {
+      counselor = stageCounselors[counselorId];
     } else {
-      const counselorList = Object.values(s.counselors).filter((c) => !c.onLeave);
+      const counselorList = Object.values(stageCounselors).filter((c) => !c.onLeave);
       if (counselorList.length === 0) {
         useGameStore.getState().addNotification("상담사가 없어 기본 효과만 적용됩니다", "warning");
       }
+      // For child/infant stages, use 1.0 as default match (detailed matching is in engine)
       const scored = counselorList.map((c) => ({
         counselor: c,
-        mult: getMatchMultiplier(c.specialty, patient.dominantIssue),
+        mult: stage === "adult"
+          ? getMatchMultiplier(c.specialty as CounselorSpecialty, patient.dominantIssue)
+          : 1.0,
       }));
       scored.sort((a, b) => b.mult - a.mult);
       counselor = scored[0]?.counselor;
     }
 
     const skill = counselor?.skill ?? 1;
-    const specialty = counselor?.specialty;
+    const specialty = counselor?.specialty as CounselorSpecialty | undefined;
 
     // 라포 난이도
     const issueConfig = ISSUE_CONFIG[patient.dominantIssue];
-    const rapportGain = Math.round(RAPPORT_PER_TREATMENT / issueConfig.rapportDifficulty);
+    const rapportGain = issueConfig
+      ? Math.round(RAPPORT_PER_TREATMENT / issueConfig.rapportDifficulty)
+      : RAPPORT_PER_TREATMENT;
 
     // 주 내담자 치료 효과 계산
-    const { finalEffect } = calcFacilityTreatEffect(facility, skill, patient.rapport, specialty, patient.dominantIssue);
+    const { finalEffect } = calcFacilityTreatEffect(facility, skill, patient.rapport, specialty, patient.dominantIssue, stage);
 
     const emBefore = patient.em;
     const emAfter = clampEM(patient.em - finalEffect);
-    const newFloorId = getFloorForEM(emAfter);
+    const newFloorId = getStageFloorForEM(stage, emAfter) as string;
     const floorChanged = newFloorId !== patient.currentFloorId;
 
-    // 주 내담자 상태 업데이트
+    // 주 내담자 상태 업데이트 (스테이지 인식)
     useGameStore.setState((prev) => {
-      const p = prev.patients[patientId];
-      if (!p) return prev;
-      const updatedCounselors = counselor
-        ? {
-            ...prev.counselors,
-            [counselor.id]: {
-              ...prev.counselors[counselor.id]!,
-              treatmentCount: (prev.counselors[counselor.id]?.treatmentCount ?? 0) + 1,
-            },
-          }
-        : prev.counselors;
+      const counselorUpdate = counselor
+        ? setStageCounselorUpdate(prev, counselor.id, {
+            treatmentCount: (counselor.treatmentCount ?? 0) + 1,
+          })
+        : {};
       return {
-        ap: prev.ap - AP_COST.treat,
-        patients: {
-          ...prev.patients,
-          [patientId]: {
-            ...p,
-            em: emAfter,
-            currentFloorId: newFloorId,
-            rapport: Math.min(100, p.rapport + rapportGain),
-            treatmentCount: p.treatmentCount + 1,
-          },
-        },
-        counselors: updatedCounselors,
+        ...spendStageAp(prev, AP_COST.treat),
+        ...setStagePatient(prev, patientId, {
+          em: emAfter,
+          currentFloorId: newFloorId as Patient["currentFloorId"],
+          rapport: Math.min(100, patient.rapport + rapportGain),
+          treatmentCount: patient.treatmentCount + 1,
+        }),
+        ...counselorUpdate,
       };
     });
 
@@ -181,29 +309,23 @@ export function useGameActions() {
     if (facility?.type === "group_room" && groupPatientIds && groupPatientIds.length > 0) {
       for (const gpId of groupPatientIds) {
         const currentState = useGameStore.getState();
-        const gp = currentState.patients[gpId];
+        const gp = getStagePatient(currentState, gpId);
         if (!gp) continue;
 
         const groupEffect = finalEffect * 0.7;
         const gpEmAfter = clampEM(gp.em - groupEffect);
-        const gpNewFloor = getFloorForEM(gpEmAfter);
+        const gpNewFloor = getStageFloorForEM(stage, gpEmAfter) as string;
 
         groupResults.push({ name: gp.name, emBefore: gp.em, emAfter: gpEmAfter });
 
         useGameStore.setState((prev) => {
-          const g = prev.patients[gpId];
-          if (!g) return prev;
           return {
-            patients: {
-              ...prev.patients,
-              [gpId]: {
-                ...g,
-                em: gpEmAfter,
-                currentFloorId: gpNewFloor,
-                rapport: Math.min(100, g.rapport + Math.round(rapportGain * 0.5)),
-                treatmentCount: g.treatmentCount + 1,
-              },
-            },
+            ...setStagePatient(prev, gpId, {
+              em: gpEmAfter,
+              currentFloorId: gpNewFloor as Patient["currentFloorId"],
+              rapport: Math.min(100, gp.rapport + Math.round(rapportGain * 0.5)),
+              treatmentCount: gp.treatmentCount + 1,
+            }),
           };
         });
       }
@@ -226,44 +348,78 @@ export function useGameActions() {
 
   const encourage = useCallback((patientId: string): TreatResult | false => {
     const s = useGameStore.getState();
-    if (s.ap < AP_COST.encourage) return false;
+    const stage = s.activeStage;
 
-    const patient = s.patients[patientId];
+    // 활성 센터에서 환자와 AP 찾기
+    const stageAp = stage === "child" && s.childStage ? s.childStage.ap
+      : stage === "infant" && s.infantStage ? s.infantStage.ap
+      : s.ap;
+    if (stageAp < AP_COST.encourage) return false;
+
+    const patient = stage === "child" && s.childStage ? s.childStage.patients[patientId] as unknown as import("@/types/index.ts").Patient
+      : stage === "infant" && s.infantStage ? s.infantStage.patients[patientId] as unknown as import("@/types/index.ts").Patient
+      : s.patients[patientId];
     if (!patient) return false;
 
-    const effects = getFloorEffects(s.facilities, patient.currentFloorId);
-    const boostMult = effects.has("boost_encourage") ? 2 : 1;
-    const rapportGain = effects.has("boost_encourage") ? 4 : 2;
+    const boostMult = 1; // 아동/영유아는 기본 배율
+    const rapportGain = 2;
 
     const baseEffect = (3 + patient.rapport * 0.05) * boostMult;
     const emBefore = patient.em;
     const emAfter = clampEM(patient.em - baseEffect);
-    const newFloorId = getFloorForEM(emAfter);
-    const floorChanged = newFloorId !== patient.currentFloorId;
 
-    useGameStore.setState((prev) => {
-      const p = prev.patients[patientId];
-      if (!p) return prev;
-      return {
-        ap: prev.ap - AP_COST.encourage,
-        patients: {
-          ...prev.patients,
-          [patientId]: {
-            ...p,
-            em: emAfter,
-            currentFloorId: newFloorId,
-            rapport: Math.min(100, p.rapport + rapportGain),
+    if (stage === "child" && s.childStage) {
+      const newFloorId = getChildFloorForEM(emAfter);
+      useGameStore.setState((prev) => {
+        if (!prev.childStage) return {};
+        const p = prev.childStage.patients[patientId];
+        if (!p) return {};
+        return {
+          childStage: {
+            ...prev.childStage,
+            ap: prev.childStage.ap - AP_COST.encourage,
+            patients: {
+              ...prev.childStage.patients,
+              [patientId]: { ...p, em: emAfter, currentFloorId: newFloorId, rapport: Math.min(100, p.rapport + rapportGain) },
+            },
           },
-        },
-      };
-    });
-
-    if (floorChanged) {
-      const floorLabel = FLOORS.find((f) => f.id === newFloorId)?.label ?? newFloorId;
-      useGameStore.getState().addNotification(
-        `${patient.name}이(가) ${floorLabel}(으)로 이동합니다`,
-        "info",
-      );
+        };
+      });
+    } else if (stage === "infant" && s.infantStage) {
+      const newFloorId = getInfantFloorForEM(emAfter);
+      useGameStore.setState((prev) => {
+        if (!prev.infantStage) return {};
+        const p = prev.infantStage.patients[patientId];
+        if (!p) return {};
+        return {
+          infantStage: {
+            ...prev.infantStage,
+            ap: prev.infantStage.ap - AP_COST.encourage,
+            patients: {
+              ...prev.infantStage.patients,
+              [patientId]: { ...p, em: emAfter, currentFloorId: newFloorId, rapport: Math.min(100, p.rapport + rapportGain) },
+            },
+          },
+        };
+      });
+    } else {
+      const newFloorId = getFloorForEM(emAfter);
+      const floorChanged = newFloorId !== patient.currentFloorId;
+      useGameStore.setState((prev) => {
+        const p = prev.patients[patientId];
+        if (!p) return prev;
+        return {
+          ap: prev.ap - AP_COST.encourage,
+          patients: {
+            ...prev.patients,
+            [patientId]: { ...p, em: emAfter, currentFloorId: newFloorId, rapport: Math.min(100, p.rapport + rapportGain) },
+          },
+        };
+      });
+      if (floorChanged) {
+        const floorLabel = FLOORS.find((f) => f.id === newFloorId)?.label ?? newFloorId;
+        useGameStore.getState().addNotification(`${patient.name}이(가) ${floorLabel}(으)로 이동합니다`, "info");
+      }
     }
 
     return {
@@ -272,40 +428,87 @@ export function useGameActions() {
       emBefore,
       emAfter,
       emDelta: emBefore - emAfter,
-      floorChanged,
+      floorChanged: false,
       patientName: patient.name,
     };
   }, []);
 
   const build = useCallback((type: FacilityType, slotIndex: number) => {
     const s = useGameStore.getState();
-    const template = FACILITY_TEMPLATES[type];
+    const stage = s.activeStage;
 
-    if (s.ap < AP_COST.build) return false;
-    if (s.gold < template.buildCost) return false;
-
-    const existing = Object.values(s.facilities).find(
-      (f) => f.floorId === s.selectedFloorId && f.slotIndex === slotIndex,
-    );
-    if (existing) return false;
-
-    const facilityId = nextId("f", s.facilities);
-    const facility: Facility = {
-      id: facilityId,
-      type,
-      floorId: s.selectedFloorId,
-      slotIndex,
-      level: 1,
-      buildCost: template.buildCost,
-      upkeepPerTurn: template.upkeepPerTurn,
-      emReduction: template.emReduction,
+    // 스테이지별 시설 템플릿 조회
+    const allTemplates: Record<string, { label: string; buildCost: number; upkeepPerTurn: number; emReduction: number }> = {
+      ...FACILITY_TEMPLATES,
+      ...CHILD_FACILITY_TEMPLATES,
+      ...INFANT_FACILITY_TEMPLATES,
     };
+    const template = allTemplates[type];
+    if (!template) return false;
 
-    useGameStore.setState((prev) => ({
-      ap: prev.ap - AP_COST.build,
-      gold: prev.gold - template.buildCost,
-      facilities: { ...prev.facilities, [facilityId]: facility },
-    }));
+    // 활성 센터의 AP/시설/층 확인
+    if (stage === "child" && s.childStage) {
+      if (s.childStage.ap < AP_COST.build || s.gold < template.buildCost) return false;
+      const existing = Object.values(s.childStage.facilities).find(
+        (f) => f.floorId === s.childStage!.selectedFloorId && f.slotIndex === slotIndex,
+      );
+      if (existing) return false;
+      const facilityId = `cf_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      useGameStore.setState((prev) => ({
+        gold: prev.gold - template.buildCost,
+        childStage: prev.childStage ? {
+          ...prev.childStage,
+          ap: prev.childStage.ap - AP_COST.build,
+          facilities: {
+            ...prev.childStage.facilities,
+            [facilityId]: {
+              id: facilityId, type: type as import("@/types/child/facility.ts").ChildFacilityType,
+              floorId: prev.childStage.selectedFloorId, slotIndex, level: 1,
+              buildCost: template.buildCost, upkeepPerTurn: template.upkeepPerTurn, emReduction: template.emReduction,
+            },
+          },
+        } : null,
+      }));
+    } else if (stage === "infant" && s.infantStage) {
+      if (s.infantStage.ap < AP_COST.build || s.gold < template.buildCost) return false;
+      const existing = Object.values(s.infantStage.facilities).find(
+        (f) => f.floorId === s.infantStage!.selectedFloorId && f.slotIndex === slotIndex,
+      );
+      if (existing) return false;
+      const facilityId = `if_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      useGameStore.setState((prev) => ({
+        gold: prev.gold - template.buildCost,
+        infantStage: prev.infantStage ? {
+          ...prev.infantStage,
+          ap: prev.infantStage.ap - AP_COST.build,
+          facilities: {
+            ...prev.infantStage.facilities,
+            [facilityId]: {
+              id: facilityId, type: type as import("@/types/infant/facility.ts").InfantFacilityType,
+              floorId: prev.infantStage.selectedFloorId, slotIndex, level: 1,
+              buildCost: template.buildCost, upkeepPerTurn: template.upkeepPerTurn, emReduction: template.emReduction,
+            },
+          },
+        } : null,
+      }));
+    } else {
+      // 성인센터
+      if (s.ap < AP_COST.build || s.gold < template.buildCost) return false;
+      const existing = Object.values(s.facilities).find(
+        (f) => f.floorId === s.selectedFloorId && f.slotIndex === slotIndex,
+      );
+      if (existing) return false;
+      const facilityId = nextId("f", s.facilities);
+      const facility: Facility = {
+        id: facilityId, type, floorId: s.selectedFloorId, slotIndex, level: 1,
+        buildCost: template.buildCost, upkeepPerTurn: template.upkeepPerTurn, emReduction: template.emReduction,
+      };
+      useGameStore.setState((prev) => ({
+        ap: prev.ap - AP_COST.build,
+        gold: prev.gold - template.buildCost,
+        facilities: { ...prev.facilities, [facilityId]: facility },
+      }));
+    }
 
     useGameStore.getState().addNotification(`${template.label} 건설 완료!`, "success");
     return true;
@@ -315,28 +518,62 @@ export function useGameActions() {
     (name: string, specialty: CounselorSpecialty, skill: number, salary: number) => {
       const s = useGameStore.getState();
       const hireCost = salary * 2;
+      const stage = s.activeStage;
 
-      if (s.ap < AP_COST.hire) return false;
+      // 활성 센터의 AP 확인
+      const stageAp = stage === "child" && s.childStage ? s.childStage.ap
+        : stage === "infant" && s.infantStage ? s.infantStage.ap
+        : s.ap;
+
+      if (stageAp < AP_COST.hire) return false;
       if (s.gold < hireCost) return false;
 
-      const counselorId = nextId("c", s.counselors);
-
-      useGameStore.setState((prev) => ({
-        ap: prev.ap - AP_COST.hire,
-        gold: prev.gold - hireCost,
-        counselors: {
-          ...prev.counselors,
-          [counselorId]: {
-            id: counselorId,
-            name,
-            specialty,
-            skill,
-            salary,
-            assignedPatientId: null,
-            treatmentCount: 0,
+      if (stage === "child" && s.childStage) {
+        const counselorId = `cc_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        useGameStore.setState((prev) => ({
+          gold: prev.gold - hireCost,
+          childStage: prev.childStage ? {
+            ...prev.childStage,
+            ap: prev.childStage.ap - AP_COST.hire,
+            counselors: {
+              ...prev.childStage.counselors,
+              [counselorId]: {
+                id: counselorId, name, specialty: specialty as unknown as import("@/types/child/counselor.ts").ChildSpecialty,
+                skill, salary, assignedPatientId: null, treatmentCount: 0,
+              },
+            },
+          } : null,
+        }));
+      } else if (stage === "infant" && s.infantStage) {
+        const counselorId = `ic_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        useGameStore.setState((prev) => ({
+          gold: prev.gold - hireCost,
+          infantStage: prev.infantStage ? {
+            ...prev.infantStage,
+            ap: prev.infantStage.ap - AP_COST.hire,
+            counselors: {
+              ...prev.infantStage.counselors,
+              [counselorId]: {
+                id: counselorId, name, specialty: specialty as unknown as import("@/types/infant/counselor.ts").InfantSpecialty,
+                skill, salary, assignedPatientId: null, treatmentCount: 0,
+              },
+            },
+          } : null,
+        }));
+      } else {
+        const counselorId = nextId("c", s.counselors);
+        useGameStore.setState((prev) => ({
+          ap: prev.ap - AP_COST.hire,
+          gold: prev.gold - hireCost,
+          counselors: {
+            ...prev.counselors,
+            [counselorId]: {
+              id: counselorId, name, specialty, skill, salary,
+              assignedPatientId: null, treatmentCount: 0,
+            },
           },
-        },
-      }));
+        }));
+      }
 
       useGameStore.getState().addNotification(`${name} 상담사 합류!`, "success");
       return true;
@@ -346,15 +583,53 @@ export function useGameActions() {
 
   const upgrade = useCallback((facilityId: string) => {
     const s = useGameStore.getState();
-    const facility = s.facilities[facilityId];
+    const facility = getStageFacility(s, facilityId);
     if (!facility) return false;
     if (facility.level >= 3) return false;
-    if (s.ap < AP_COST.upgrade) return false;
+    if (getStageAp(s) < AP_COST.upgrade) return false;
 
     const upgradeCost = Math.ceil(facility.buildCost * 0.5 * facility.level);
     if (s.gold < upgradeCost) return false;
 
     useGameStore.setState((prev) => {
+      // Stage-aware facility update
+      const facilityUpdate: Partial<Facility> = {
+        level: facility.level + 1,
+        emReduction: Math.round(facility.emReduction * 1.3),
+        upkeepPerTurn: Math.round(facility.upkeepPerTurn * 1.2),
+      };
+
+      if (prev.activeStage === "child" && prev.childStage) {
+        const f = prev.childStage.facilities[facilityId];
+        if (!f) return prev;
+        return {
+          gold: prev.gold - upgradeCost,
+          childStage: {
+            ...prev.childStage,
+            ap: prev.childStage.ap - AP_COST.upgrade,
+            facilities: {
+              ...prev.childStage.facilities,
+              [facilityId]: { ...f, ...facilityUpdate } as typeof f,
+            },
+          },
+        };
+      }
+      if (prev.activeStage === "infant" && prev.infantStage) {
+        const f = prev.infantStage.facilities[facilityId];
+        if (!f) return prev;
+        return {
+          gold: prev.gold - upgradeCost,
+          infantStage: {
+            ...prev.infantStage,
+            ap: prev.infantStage.ap - AP_COST.upgrade,
+            facilities: {
+              ...prev.infantStage.facilities,
+              [facilityId]: { ...f, ...facilityUpdate } as typeof f,
+            },
+          },
+        };
+      }
+      // Adult
       const f = prev.facilities[facilityId];
       if (!f) return prev;
       return {
@@ -362,19 +637,20 @@ export function useGameActions() {
         gold: prev.gold - upgradeCost,
         facilities: {
           ...prev.facilities,
-          [facilityId]: {
-            ...f,
-            level: f.level + 1,
-            emReduction: Math.round(f.emReduction * 1.3),
-            upkeepPerTurn: Math.round(f.upkeepPerTurn * 1.2),
-          },
+          [facilityId]: { ...f, ...facilityUpdate },
         },
       };
     });
 
-    const template = FACILITY_TEMPLATES[facility.type];
+    // Look up template from all stages
+    const allTemplates: Record<string, { label: string }> = {
+      ...FACILITY_TEMPLATES,
+      ...CHILD_FACILITY_TEMPLATES as unknown as Record<string, { label: string }>,
+      ...INFANT_FACILITY_TEMPLATES as unknown as Record<string, { label: string }>,
+    };
+    const template = allTemplates[facility.type];
     useGameStore.getState().addNotification(
-      `${template.label} Lv.${facility.level + 1} 업그레이드!`,
+      `${template?.label ?? facility.type} Lv.${facility.level + 1} 업그레이드!`,
       "success",
     );
     return true;
@@ -382,17 +658,36 @@ export function useGameActions() {
 
   const fire = useCallback((counselorId: string) => {
     const s = useGameStore.getState();
-    const counselor = s.counselors[counselorId];
+    const stage = s.activeStage;
+    const counselor = getStageCounselor(s, counselorId);
     if (!counselor) return false;
 
-    const ok = s.fireCounselor(counselorId);
-    if (ok) {
-      useGameStore.getState().addNotification(
-        `${counselor.name} 상담사가 퇴직했습니다`,
-        "info",
-      );
+    if (stage === "child" && s.childStage) {
+      useGameStore.setState((prev) => {
+        if (!prev.childStage) return {};
+        const { [counselorId]: _, ...rest } = prev.childStage.counselors;
+        return {
+          childStage: { ...prev.childStage, counselors: rest },
+        };
+      });
+    } else if (stage === "infant" && s.infantStage) {
+      useGameStore.setState((prev) => {
+        if (!prev.infantStage) return {};
+        const { [counselorId]: _, ...rest } = prev.infantStage.counselors;
+        return {
+          infantStage: { ...prev.infantStage, counselors: rest },
+        };
+      });
+    } else {
+      const ok = s.fireCounselor(counselorId);
+      if (!ok) return false;
     }
-    return ok;
+
+    useGameStore.getState().addNotification(
+      `${counselor.name} 상담사가 퇴직했습니다`,
+      "info",
+    );
+    return true;
   }, []);
 
   return { treat, build, hire, encourage, upgrade, fire };

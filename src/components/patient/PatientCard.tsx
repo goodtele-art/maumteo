@@ -3,11 +3,21 @@ import { m } from "motion/react";
 import EMBar from "@/components/shared/EMBar.tsx";
 import CharacterAvatar from "@/components/shared/CharacterAvatar.tsx";
 import { ISSUE_LABELS } from "@/lib/engine/patient.ts";
+import { CHILD_ISSUE_LABELS } from "@/lib/engine/childPatient.ts";
+import { INFANT_ISSUE_LABELS } from "@/lib/engine/infantPatient.ts";
 import { useGameStore } from "@/store/gameStore.ts";
 import { AP_COST } from "@/lib/constants.ts";
 import type { Patient } from "@/types/index.ts";
 
+/** 모든 스테이지의 문제영역 라벨 통합 */
+const ALL_ISSUE_LABELS: Record<string, string> = {
+  ...ISSUE_LABELS,
+  ...CHILD_ISSUE_LABELS,
+  ...INFANT_ISSUE_LABELS,
+};
+
 const ISSUE_COLORS: Record<string, string> = {
+  // 성인
   depression: "bg-blue-900/50 text-blue-300",
   anxiety: "bg-amber-900/50 text-amber-300",
   relationship: "bg-pink-900/50 text-pink-300",
@@ -16,6 +26,22 @@ const ISSUE_COLORS: Record<string, string> = {
   addiction: "bg-orange-900/50 text-orange-300",
   personality: "bg-rose-900/50 text-rose-300",
   psychosis: "bg-violet-900/50 text-violet-300",
+  // 아동
+  child_anxiety: "bg-amber-900/50 text-amber-300",
+  child_depression: "bg-blue-900/50 text-blue-300",
+  adhd: "bg-orange-900/50 text-orange-300",
+  behavior_regulation: "bg-red-900/50 text-red-300",
+  child_trauma: "bg-rose-900/50 text-rose-300",
+  child_ocd: "bg-indigo-900/50 text-indigo-300",
+  eating_disorder: "bg-pink-900/50 text-pink-300",
+  emotion_crisis: "bg-red-900/50 text-red-300",
+  // 영유아
+  asd_early: "bg-violet-900/50 text-violet-300",
+  dev_delay: "bg-sky-900/50 text-sky-300",
+  attachment: "bg-rose-900/50 text-rose-300",
+  sensory: "bg-teal-900/50 text-teal-300",
+  speech_delay: "bg-cyan-900/50 text-cyan-300",
+  behavioral_infant: "bg-orange-900/50 text-orange-300",
 };
 
 function getCardBorderColor(em: number): string {
@@ -34,7 +60,13 @@ interface PatientCardProps {
 
 export default function PatientCard({ patient, onTreat, onEncourage }: PatientCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const ap = useGameStore((s) => s.ap);
+  const adultAp = useGameStore((s) => s.ap);
+  const activeStage = useGameStore((s) => s.activeStage);
+  const childStage = useGameStore((s) => s.childStage);
+  const infantStage = useGameStore((s) => s.infantStage);
+  const ap = activeStage === "child" && childStage ? childStage.ap
+    : activeStage === "infant" && infantStage ? infantStage.ap
+    : adultAp;
   const borderColor = getCardBorderColor(patient.em);
   const isCrisis = patient.em >= 80;
   const canTreat = ap >= AP_COST.treat;
@@ -60,7 +92,7 @@ export default function PatientCard({ patient, onTreat, onEncourage }: PatientCa
               <span
                 className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${ISSUE_COLORS[patient.dominantIssue] ?? ""}`}
               >
-                {ISSUE_LABELS[patient.dominantIssue]}
+                {ALL_ISSUE_LABELS[patient.dominantIssue] ?? patient.dominantIssue}
               </span>
             </div>
             <div className="flex gap-1.5 shrink-0 ml-2">

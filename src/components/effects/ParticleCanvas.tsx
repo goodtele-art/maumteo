@@ -11,41 +11,119 @@ interface Particle {
   size: number;
   color: string;
   alpha: number;
+  shape?: "circle" | "star" | "heart";
 }
 
-type ParticlePreset = "heal" | "crisis";
+export type ParticlePreset =
+  | "heal"
+  | "crisis"
+  | "milestone"
+  | "levelup"
+  | "reputation"
+  | "parent_active"
+  | "golden_time"
+  | "ending";
 
-const PRESETS: Record<ParticlePreset, {
+interface PresetConfig {
   count: number;
   color: () => string;
   speed: () => number;
   size: () => number;
   life: () => number;
   gravity: number;
-}> = {
+  shape?: "circle" | "star" | "heart";
+}
+
+const PRESETS: Record<ParticlePreset, PresetConfig> = {
   heal: {
     count: 25,
-    color: () => {
-      const hue = 160 + Math.random() * 40; // teal~green
-      return `hsl(${hue}, 70%, 70%)`;
-    },
+    color: () => `hsl(${160 + Math.random() * 40}, 70%, 70%)`,
     speed: () => 0.3 + Math.random() * 0.8,
     size: () => 2 + Math.random() * 3,
     life: () => 60 + Math.random() * 40,
-    gravity: -0.01, // 위로 떠오름
+    gravity: -0.01,
   },
   crisis: {
     count: 15,
-    color: () => {
-      const hue = Math.random() * 20; // red~orange
-      return `hsl(${hue}, 80%, 55%)`;
-    },
+    color: () => `hsl(${Math.random() * 20}, 80%, 55%)`,
     speed: () => 0.5 + Math.random() * 1.2,
     size: () => 1.5 + Math.random() * 2,
     life: () => 40 + Math.random() * 30,
-    gravity: 0.02, // 아래로 떨어짐
+    gravity: 0.02,
+  },
+  milestone: {
+    count: 30,
+    color: () => `hsl(${40 + Math.random() * 20}, 90%, ${60 + Math.random() * 20}%)`,
+    speed: () => 0.5 + Math.random() * 1.5,
+    size: () => 2 + Math.random() * 4,
+    life: () => 80 + Math.random() * 40,
+    gravity: -0.015,
+    shape: "star",
+  },
+  levelup: {
+    count: 20,
+    color: () => `hsl(${200 + Math.random() * 30}, 80%, 65%)`,
+    speed: () => 0.4 + Math.random() * 1.0,
+    size: () => 2 + Math.random() * 3,
+    life: () => 60 + Math.random() * 30,
+    gravity: -0.02,
+  },
+  reputation: {
+    count: 25,
+    color: () => `hsl(${270 + Math.random() * 30}, 70%, 70%)`,
+    speed: () => 0.3 + Math.random() * 0.9,
+    size: () => 2 + Math.random() * 3,
+    life: () => 70 + Math.random() * 40,
+    gravity: -0.01,
+    shape: "star",
+  },
+  parent_active: {
+    count: 15,
+    color: () => `hsl(${130 + Math.random() * 30}, 60%, 60%)`,
+    speed: () => 0.3 + Math.random() * 0.6,
+    size: () => 3 + Math.random() * 3,
+    life: () => 50 + Math.random() * 30,
+    gravity: -0.01,
+    shape: "heart",
+  },
+  golden_time: {
+    count: 35,
+    color: () => `hsl(${45 + Math.random() * 10}, 95%, ${55 + Math.random() * 15}%)`,
+    speed: () => 0.8 + Math.random() * 1.5,
+    size: () => 2 + Math.random() * 4,
+    life: () => 90 + Math.random() * 50,
+    gravity: -0.008,
+    shape: "star",
+  },
+  ending: {
+    count: 60,
+    color: () => `hsl(${Math.random() * 360}, 80%, 65%)`,
+    speed: () => 1.0 + Math.random() * 2.5,
+    size: () => 2 + Math.random() * 5,
+    life: () => 100 + Math.random() * 60,
+    gravity: 0.01,
+    shape: "star",
   },
 };
+
+function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+    const method = i === 0 ? "moveTo" : "lineTo";
+    ctx[method](x + r * Math.cos(angle), y + r * Math.sin(angle));
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawHeart(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x, y + r * 0.3);
+  ctx.bezierCurveTo(x - r, y - r * 0.5, x - r * 0.5, y - r, x, y - r * 0.4);
+  ctx.bezierCurveTo(x + r * 0.5, y - r, x + r, y - r * 0.5, x, y + r * 0.3);
+  ctx.fill();
+}
 
 export interface ParticleEmission {
   preset: ParticlePreset;
@@ -83,6 +161,7 @@ export default function ParticleCanvas({ emission, onComplete }: ParticleCanvasP
         size: preset.size(),
         color: preset.color(),
         alpha: 1,
+        shape: preset.shape,
       });
     }
   }, []);
@@ -122,9 +201,17 @@ export default function ParticleCanvas({ emission, onComplete }: ParticleCanvasP
 
         ctx.globalAlpha = p.alpha * 0.8;
         ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * p.alpha, 0, Math.PI * 2);
-        ctx.fill();
+
+        const drawSize = p.size * p.alpha;
+        if (p.shape === "star") {
+          drawStar(ctx, p.x, p.y, drawSize * 1.5);
+        } else if (p.shape === "heart") {
+          drawHeart(ctx, p.x, p.y, drawSize * 2);
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, drawSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       ctx.globalAlpha = 1;

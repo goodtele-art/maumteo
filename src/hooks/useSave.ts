@@ -19,6 +19,13 @@ function initNewGame(): void {
   s.selectFloor("counseling");
   s.closeModal();
 
+  // Stage 2-3 초기화
+  useGameStore.setState({
+    activeStage: "adult",
+    childStage: null,
+    infantStage: null,
+  });
+
   const p1 = generatePatient(1, 1);
   const p2 = generatePatient(1, 2);
   s.addPatient(p1);
@@ -60,6 +67,10 @@ export function useSave() {
         facilities: data.facilities,
         counselors: data.counselors,
         turnLog: data.turnLog,
+        // Stage 2-3 복원 (v1 세이브는 기본값)
+        activeStage: data.activeStage ?? "adult",
+        childStage: data.childStage ?? null,
+        infantStage: data.infantStage ?? null,
       });
 
       return true;

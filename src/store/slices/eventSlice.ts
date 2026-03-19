@@ -84,6 +84,43 @@ export const createEventSlice: StateCreator<
           }
           break;
         }
+        case "parent_involvement": {
+          // 아동/영유아 내담자의 부모참여도 변경
+          // childStage나 infantStage에서 랜덤 대상 선택
+          const childStage = (s as GameStore).childStage;
+          const infantStage = (s as GameStore).infantStage;
+          const childPatients = childStage ? { ...childStage.patients } : {};
+          const infantPatients = infantStage ? { ...infantStage.patients } : {};
+          const allParentIds = [...Object.keys(childPatients), ...Object.keys(infantPatients)];
+          if (allParentIds.length > 0) {
+            const targetPid = targetPatientId ?? allParentIds[Math.floor(Math.random() * allParentIds.length)]!;
+            if (childPatients[targetPid]) {
+              const cp = childPatients[targetPid]!;
+              childPatients[targetPid] = {
+                ...cp,
+                parentInvolvement: Math.max(0, Math.min(100, cp.parentInvolvement + effect.value)),
+              };
+              if (childStage) {
+                set({ childStage: { ...childStage, patients: childPatients } } as Partial<GameStore>);
+              }
+            } else if (infantPatients[targetPid]) {
+              const ip = infantPatients[targetPid]!;
+              infantPatients[targetPid] = {
+                ...ip,
+                parentInvolvement: Math.max(0, Math.min(100, ip.parentInvolvement + effect.value)),
+              };
+              if (infantStage) {
+                set({ infantStage: { ...infantStage, patients: infantPatients } } as Partial<GameStore>);
+              }
+            }
+          }
+          break;
+        }
+        case "patient_limit": {
+          // 내담자 한도 변경 (현재는 로그만)
+          console.log(`[Event] patient_limit effect: ${effect.value}`);
+          break;
+        }
       }
     }
 

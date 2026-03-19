@@ -7,6 +7,9 @@ import { createTurnSlice } from "./slices/turnSlice.ts";
 import { createUiSlice } from "./slices/uiSlice.ts";
 import { createEventSlice } from "./slices/eventSlice.ts";
 import { createAchievementSlice } from "./slices/achievementSlice.ts";
+import { createStageSlice } from "./slices/stageSlice.ts";
+import { createStaffSlice } from "./slices/staffSlice.ts";
+import { createReferralSlice } from "./slices/referralSlice.ts";
 import type { ResourceSlice } from "./slices/resourceSlice.ts";
 import type { PatientSlice } from "./slices/patientSlice.ts";
 import type { FacilitySlice } from "./slices/facilitySlice.ts";
@@ -15,6 +18,9 @@ import type { TurnSlice } from "./slices/turnSlice.ts";
 import type { UiSlice } from "./slices/uiSlice.ts";
 import type { EventSlice } from "./slices/eventSlice.ts";
 import type { AchievementSlice } from "./slices/achievementSlice.ts";
+import type { StageSlice } from "./slices/stageSlice.ts";
+import type { StaffSlice } from "./slices/staffSlice.ts";
+import type { ReferralSlice } from "./slices/referralSlice.ts";
 
 export type GameStore = ResourceSlice &
   PatientSlice &
@@ -23,7 +29,10 @@ export type GameStore = ResourceSlice &
   TurnSlice &
   UiSlice &
   EventSlice &
-  AchievementSlice;
+  AchievementSlice &
+  StageSlice &
+  StaffSlice &
+  ReferralSlice;
 
 export const useGameStore = create<GameStore>()((...a) => ({
   ...createResourceSlice(...a),
@@ -34,4 +43,7 @@ export const useGameStore = create<GameStore>()((...a) => ({
   ...createUiSlice(...a),
   ...createEventSlice(...a),
   ...createAchievementSlice(...a),
+  ...createStageSlice(...a),
+  ...createStaffSlice(...a),
+  ...createReferralSlice(...a),
 }));
