@@ -255,7 +255,7 @@ export function useGameActions() {
         const updatedPatients = { ...patients, [patientId]: { ...p, em: emAfter, currentFloorId: newFloorId, rapport: Math.min(100, patient.rapport + rapportGain), treatmentCount: patient.treatmentCount + 1 } };
         const counselors = stageData.counselors as Record<string, Record<string, unknown>>;
         const updatedCounselors = counselor && counselors[counselor.id]
-          ? { ...counselors, [counselor.id]: { ...counselors[counselor.id], treatmentCount: (counselor.treatmentCount ?? 0) + 1 } }
+          ? { ...counselors, [counselor.id]: { ...counselors[counselor.id], treatmentCount: (counselor.treatmentCount ?? 0) + 1, lastTreatmentTurn: prev.currentTurn, treatmentsThisTurn: ((counselors[counselor.id].treatmentsThisTurn as number) ?? 0) + 1 } }
           : counselors;
         return {
           [stageKey]: {
@@ -269,7 +269,7 @@ export function useGameActions() {
       // 성인 센터
       const patientData = prev.patients[patientId];
       const counselorUpdate = counselor
-        ? { counselors: { ...prev.counselors, [counselor.id]: { ...prev.counselors[counselor.id], treatmentCount: (counselor.treatmentCount ?? 0) + 1 } } }
+        ? { counselors: { ...prev.counselors, [counselor.id]: { ...prev.counselors[counselor.id], treatmentCount: (counselor.treatmentCount ?? 0) + 1, lastTreatmentTurn: prev.currentTurn, treatmentsThisTurn: (prev.counselors[counselor.id]?.treatmentsThisTurn ?? 0) + 1 } } }
         : {};
       return {
         ap: prev.ap - AP_COST.treat,

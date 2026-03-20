@@ -14,4 +14,7 @@ export interface InfantCounselor {
   assignedPatientId: string | null;
   treatmentCount: number;
   onLeave?: boolean;
+  lastTreatmentTurn?: number;
+  treatmentsThisTurn?: number;
+  turnsOverworked?: number;
 }
