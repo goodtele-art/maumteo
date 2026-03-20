@@ -36,6 +36,30 @@ export function getAudioSettings() {
   return { bgmVolume, sfxVolume, ambientVolume, bgmEnabled, sfxEnabled, ambientEnabled };
 }
 
+const AUDIO_STORAGE_KEY = "maumteo_audio";
+
+export function saveAudioSettings(): void {
+  try {
+    localStorage.setItem(AUDIO_STORAGE_KEY, JSON.stringify({
+      bgmVolume, sfxVolume, ambientVolume, bgmEnabled, sfxEnabled, ambientEnabled,
+    }));
+  } catch { /* 저장 실패 무시 */ }
+}
+
+export function loadAudioSettings(): void {
+  try {
+    const raw = localStorage.getItem(AUDIO_STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (typeof s.bgmVolume === "number") bgmVolume = Math.max(0, Math.min(1, s.bgmVolume));
+    if (typeof s.sfxVolume === "number") sfxVolume = Math.max(0, Math.min(1, s.sfxVolume));
+    if (typeof s.ambientVolume === "number") ambientVolume = Math.max(0, Math.min(1, s.ambientVolume));
+    if (typeof s.bgmEnabled === "boolean") bgmEnabled = s.bgmEnabled;
+    if (typeof s.sfxEnabled === "boolean") sfxEnabled = s.sfxEnabled;
+    if (typeof s.ambientEnabled === "boolean") ambientEnabled = s.ambientEnabled;
+  } catch { /* 로드 실패 무시 */ }
+}
+
 // ── 절차적 효과음 합성 ──
 
 function playTone(

@@ -1040,6 +1040,180 @@
 
 ---
 
+## 25. BGM 트랙 (7개)
+
+> 경로: `public/assets/audio/bgm/`
+> 포맷: MP3 또는 OGG (128kbps, 루프 재생용)
+> 생성 도구: [Suno.ai](https://suno.ai) — 무료 티어
+> 길이: 60~120초 (심리스 루프 가능하도록)
+
+### 1) 메인 테마 / 스테이지별 BGM
+
+(1) `main_theme.mp3`
+**Suno 프롬프트**: `Gentle piano and soft strings, hopeful and warm atmosphere, counseling center theme, Korean drama OST style, medium tempo 90bpm, seamless loop, no vocals, calm and inspiring, like a lighthouse guiding lost souls`
+**분위기**: 메인 메뉴 / 타이틀 화면 — 희망적이고 따뜻한 피아노+현악
+
+(2) `adult_ambient.mp3`
+**Suno 프롬프트**: `Lo-fi ambient piano with soft rain texture, calm professional office atmosphere, gentle Rhodes keys, subtle jazz chords, 70bpm, relaxing therapy session background, no vocals, seamless loop, adult counseling center mood`
+**분위기**: 성인센터 — 차분한 Lo-fi 피아노, 전문적이고 안정적인 느낌
+
+(3) `child_playful.mp3`
+**Suno 프롬프트**: `Bright cheerful marimba and acoustic guitar, playful but gentle melody, children's therapy center atmosphere, warm and safe feeling, 100bpm, xylophone accents, no vocals, seamless loop, like a colorful playground indoors`
+**분위기**: 아동센터 — 밝고 활기찬 마림바+기타, 놀이와 안전의 공간
+
+(4) `infant_gentle.mp3`
+**Suno 프롬프트**: `Soft music box melody with harp arpeggios, gentle lullaby style, pastel dreamland atmosphere, very slow 60bpm, celesta and soft chimes, no vocals, seamless loop, infant developmental center, tender and nurturing`
+**분위기**: 영유아센터 — 오르골+하프의 부드러운 자장가 풍, 파스텔 느낌
+
+(5) `crisis_tension.mp3`
+**Suno 프롬프트**: `Tense string tremolo with deep cello, anxious atmospheric soundtrack, slow build suspense, 80bpm, minor key, heartbeat-like bass pulse, no vocals, seamless loop, psychological crisis moment, NOT horror — more concerned and urgent`
+**분위기**: 위기 상황 (EM 높음) — 긴박한 현악 트레몰로, 공포가 아닌 걱정과 긴장
+
+(6) `ending_hope.mp3`
+**Suno 프롬프트**: `Emotional orchestral crescendo, full strings and piano building to triumphant climax, hopeful victory theme, Korean drama finale style, 100bpm, brass fanfare at peak, healing and achievement atmosphere, no vocals, cinematic, tears of joy`
+**분위기**: 엔딩 — 감동적 풀 오케스트라, 치유와 성취의 클라이맥스
+
+(7) `gameover_sad.mp3`
+**Suno 프롬프트**: `Solo piano, melancholic minor key melody, gentle rain ambiance, bittersweet and reflective, 60bpm, simple and sparse, sense of loss but also possibility of trying again, no vocals, short 60 seconds, fading ending`
+**분위기**: 게임오버 — 슬프지만 다시 도전할 수 있다는 여운, 솔로 피아노
+
+---
+
+## 26. SFX 효과음 (12개)
+
+> 경로: `public/assets/audio/sfx/`
+> 포맷: MP3 또는 WAV (짧은 효과음, 0.5~3초)
+> 생성 도구: [Mixkit.co](https://mixkit.co) / [Freesound.org](https://freesound.org) 무료 다운로드
+> 참고: 절차적 합성(Web Audio)이 이미 구현되어 있으므로, 외부 파일은 품질 업그레이드용
+
+### 1) UI/기본 효과음
+
+(1) `click.mp3`
+**검색어**: `soft UI click`, `button tap sound`, `gentle pop`
+**Mixkit 추천**: "Software interface click" 또는 "Quick pop click"
+**특징**: 50~100ms, 높은 톤의 부드러운 클릭, 반복 사용에 거슬리지 않는 것
+
+(2) `turn_advance.mp3`
+**검색어**: `turn notification chime`, `gentle two-tone ascending`
+**Mixkit 추천**: "Message pop alert" 또는 "Notification bell"
+**특징**: 상승하는 두 음 (도→미), 200~300ms, 턴 진행을 알리는 맑은 차임
+
+(3) `treat_complete.mp3`
+**검색어**: `healing chime`, `positive feedback sound`, `therapy bell`
+**Mixkit 추천**: "Correct answer tone" 또는 "Achievement bell"
+**특징**: 벨 소리 두 음, 300~500ms, 치료 완료의 부드러운 성공음
+
+(4) `discharge.mp3`
+**검색어**: `celebration fanfare short`, `victory jingle`, `level complete`
+**Mixkit 추천**: "Game level complete" 또는 "Achievement unlocked"
+**특징**: 밝은 3화음 팡파레, 500~800ms, 종결(퇴원)의 축하 느낌
+
+(5) `crisis.mp3`
+**검색어**: `warning alert tone`, `danger notification`, `urgent alarm soft`
+**Mixkit 추천**: "Alert notification" 또는 "Error buzzer"
+**특징**: 낮은 경고음, 400~600ms, 공포스럽지 않은 긴급 알림 (사이렌 금지)
+
+### 2) 건설/고용 효과음
+
+(6) `build.mp3`
+**검색어**: `construction complete`, `building placed`, `hammer build`
+**Mixkit 추천**: "Wooden block placed" 또는 "Building block snap"
+**특징**: 짧은 해머/블록음, 200~300ms, 시설 건설 완료
+
+(7) `hire.mp3`
+**검색어**: `welcome chime`, `positive notification`, `new member jingle`
+**Mixkit 추천**: "Welcome notification" 또는 "Positive interface beep"
+**특징**: 환영 차임 두 음, 300~400ms, 새 상담사 고용
+
+### 3) 스테이지/특수 효과음
+
+(8) `milestone.mp3`
+**검색어**: `achievement sparkle`, `star collect`, `milestone reached`
+**Mixkit 추천**: "Fairy magic sparkle" 또는 "Star rating"
+**특징**: 반짝이는 상승 3음, 400~600ms, 발달 이정표 달성
+
+(9) `parent_meeting.mp3`
+**검색어**: `doorbell chime`, `warm greeting tone`, `visitor arrival`
+**Mixkit 추천**: "Door bell ding" 또는 "Warm welcome chime"
+**특징**: 따뜻한 벨 2음, 300ms, 부모면담/코칭 시작
+
+(10) `assessment.mp3`
+**검색어**: `pen writing sound`, `clipboard check`, `form complete`
+**Mixkit 추천**: "Paper slide" 또는 "Pen writing scratch"
+**특징**: 펜 쓰는 소리+체크, 200~400ms, 심리검사 실시
+
+(11) `stage_switch.mp3`
+**검색어**: `elevator ding`, `floor change chime`, `transition whoosh`
+**Mixkit 추천**: "Elevator arrival ding" 또는 "Scene transition"
+**특징**: 엘리베이터 4음 상승, 400~600ms, 센터 전환
+
+(12) `achievement.mp3`
+**검색어**: `trophy unlocked`, `grand achievement fanfare`, `badge earned`
+**Mixkit 추천**: "Game bonus reached" 또는 "Achievement unlocked fanfare"
+**특징**: 화려한 팡파레 4음, 500~800ms, 업적 달성 축하
+
+---
+
+## 27. 환경음 루프 (9개)
+
+> 경로: `public/assets/audio/ambient/`
+> 포맷: MP3 또는 OGG (루프 재생용, 30~60초 심리스 루프)
+> 생성 도구: [Freesound.org](https://freesound.org) (CC0/CC-BY 라이선스)
+> 볼륨: BGM보다 낮게 (기본 0.2), 분위기 레이어링용
+
+### 1) 성인센터 환경음
+
+(1) `office_calm.mp3`
+**Freesound 검색어**: `office ambience loop`, `quiet room tone`, `air conditioning hum`
+**특징**: 조용한 사무실 톤, 에어컨 미세한 윙, 멀리서 시계 틱, 차분한 상담센터 분위기
+**라이선스**: CC0 추천
+
+(2) `rain_window.mp3`
+**Freesound 검색어**: `rain on window loop`, `gentle rain indoor`, `rainy day ambience`
+**특징**: 창문에 떨어지는 부드러운 빗소리, 실내에서 듣는 편안한 비, 치료 세션 배경
+**라이선스**: CC0
+
+(3) `garden_birds.mp3`
+**Freesound 검색어**: `garden birds loop`, `birdsong gentle`, `outdoor garden ambience`
+**특징**: 옥상정원(garden층) 전용, 새소리+바람, 회복과 자유의 공간
+**라이선스**: CC0
+
+### 2) 아동센터 환경음
+
+(4) `playground_indoor.mp3`
+**Freesound 검색어**: `indoor playground ambience`, `children playing distant`, `kids activity room`
+**특징**: 멀리서 들리는 아이들 소리, 블록 놀이, 웃음, 아동센터 활기
+**라이선스**: CC0 (실제 아동 녹음은 피하고 합성/연출 녹음 사용)
+
+(5) `school_hallway.mp3`
+**Freesound 검색어**: `school corridor ambience`, `hallway quiet`, `educational environment`
+**특징**: 학교 복도 느낌, 먼 발소리, 교실 문 여닫는 소리, 학교자문 분위기
+**라이선스**: CC0
+
+(6) `nature_stream.mp3`
+**Freesound 검색어**: `stream water loop`, `creek flowing gentle`, `forest stream`
+**특징**: 졸졸 흐르는 시냇물, 하늘놀이터(child_garden층) 전용, 자연 치유 분위기
+**라이선스**: CC0
+
+### 3) 영유아센터 환경음
+
+(7) `music_box.mp3`
+**Freesound 검색어**: `music box melody loop`, `nursery music box`, `gentle lullaby box`
+**특징**: 오르골 멜로디 루프, 영유아센터 기본 환경음, 따뜻하고 안전한 느낌
+**라이선스**: CC0
+
+(8) `soft_chimes.mp3`
+**Freesound 검색어**: `wind chimes gentle loop`, `soft chimes ambient`, `peaceful bells`
+**특징**: 부드러운 윈드차임, 꽃피는놀이방(infant_bloom층) 분위기, 평화로운 소리
+**라이선스**: CC0
+
+(9) `heartbeat_womb.mp3`
+**Freesound 검색어**: `heartbeat ambient loop`, `womb sounds`, `prenatal heartbeat gentle`
+**특징**: 편안한 심장박동 + 자궁 내부 같은 포근함, 안전한둥지(infant_cocoon층) 전용
+**라이선스**: CC0
+
+---
+
 ## 총 에셋 수량 체크리스트
 
 | # | 카테고리 | 수량 | 경로 |
@@ -1068,4 +1242,9 @@
 | 22 | 아동 상담사 | 6 | characters/counselor-child/ |
 | 23 | 영유아 내담자 캐릭터 | 18 | characters/patient-infant/ |
 | 24 | 영유아 상담사 | 5 | characters/counselor-infant/ |
-| | **총합** | **237** | |
+| 25 | BGM 트랙 | 7 | audio/bgm/ |
+| 26 | SFX 효과음 | 12 | audio/sfx/ |
+| 27 | 환경음 루프 | 9 | audio/ambient/ |
+| | **이미지 총합** | **237** | |
+| | **오디오 총합** | **28** | |
+| | **전체 에셋** | **265** | |

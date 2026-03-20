@@ -43,11 +43,12 @@ function initTurn30() {
     s.addPatient(generatePatient(30, i + 1));
   }
 
-  // Stage 초기화
+  // Stage 초기화 (이전 세이브의 잔존 데이터 정리)
   useGameStore.setState({
     activeStage: "adult",
     childStage: null,
     infantStage: null,
+    viceDirector: null,
   });
 }
 
@@ -119,8 +120,8 @@ function initTurn60() {
     });
   }
 
-  // 영유아센터는 아직 미오픈
-  useGameStore.setState({ infantStage: null, activeStage: "adult" });
+  // 영유아센터 미오픈, 이전 잔존 데이터 정리
+  useGameStore.setState({ infantStage: null, activeStage: "adult", viceDirector: null });
 }
 
 /** 디버그 시나리오 적용 */

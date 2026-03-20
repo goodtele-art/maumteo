@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { m } from "motion/react";
 import { useGameStore } from "@/store/gameStore.ts";
+import { sfxStageSwitch } from "@/lib/audio.ts";
 import type { StageId } from "@/types/stage.ts";
 import {
   CHILD_STAGE_OPEN_TURN,
@@ -22,8 +23,13 @@ const STAGES: StageTabInfo[] = [
 
 export default function StageTab() {
   const activeStage = useGameStore((s) => s.activeStage);
-  const switchStage = useGameStore((s) => s.switchStage);
+  const switchStageRaw = useGameStore((s) => s.switchStage);
   const currentTurn = useGameStore((s) => s.currentTurn);
+
+  const switchStage = useCallback((id: StageId) => {
+    if (id !== useGameStore.getState().activeStage) sfxStageSwitch();
+    switchStageRaw(id);
+  }, [switchStageRaw]);
 
   const isUnlocked = useCallback(
     (stage: StageTabInfo) => currentTurn >= stage.unlockTurn,

@@ -5,7 +5,8 @@ import { useGameActions } from "@/hooks/useGameActions.ts";
 import type { TreatResult } from "@/hooks/useGameActions.ts";
 import { useSave, initNewGame } from "@/hooks/useSave.ts";
 import { useGuide } from "@/hooks/useGuide.ts";
-import { sfxClick, sfxTurnAdvance, sfxTreatComplete, sfxDischarge, sfxCrisis, sfxBuild, sfxHire } from "@/lib/audio.ts";
+import { useAudioManager } from "@/hooks/useAudioManager.ts";
+import { sfxClick, sfxTurnAdvance, sfxTreatComplete, sfxDischarge, sfxCrisis, sfxBuild, sfxHire, sfxAchievement, sfxMilestone, loadAudioSettings, stopAll } from "@/lib/audio.ts";
 import { getReputationGrade } from "@/lib/constants.ts";
 import GameLayout from "@/components/layout/GameLayout.tsx";
 import FloorView from "@/components/floor/FloorView.tsx";
@@ -42,6 +43,7 @@ export default function App() {
   const { save, load, reset, hasSave } = useSave();
   const { treat, build, hire, encourage, upgrade, fire } = useGameActions();
   const { currentGuide, showGuide, dismissGuide, resetGuides } = useGuide();
+  useAudioManager();
   const activeModal = useGameStore((s) => s.activeModal);
   const closeModal = useGameStore((s) => s.closeModal);
   const initialized = useRef(false);
@@ -71,6 +73,7 @@ export default function App() {
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
+    loadAudioSettings();
 
     // 디버그 모드: ?debug=30 또는 ?debug=60
     const debugTurn = getDebugTurn();
@@ -227,6 +230,18 @@ export default function App() {
       }
     }
 
+    // 영유아 이정표 달성 SFX (턴 처리 후 알림에서 감지)
+    const storeAfterTurn = useGameStore.getState();
+    if (storeAfterTurn.infantStage) {
+      const hasMilestone = Object.values(storeAfterTurn.infantStage.patients).some(
+        (p) => p.milestones?.some((m) => m.achieved && m.achievedTurn === result.currentTurn),
+      );
+      if (hasMilestone) {
+        sfxMilestone();
+        setParticleEmission({ preset: "milestone", x: 0.5, y: 0.3 });
+      }
+    }
+
     // 업적 체크
     const store = useGameStore.getState();
     const newAchievements = checkAchievements(
@@ -244,6 +259,8 @@ export default function App() {
       }
     }
     if (newAchievements.length > 0) {
+      sfxAchievement();
+      setParticleEmission({ preset: "reputation", x: 0.5, y: 0.2 });
       setAchievementToast(newAchievements[0]!);
     }
   }, [save, showGuide]);
@@ -347,6 +364,7 @@ export default function App() {
   );
 
   const handleNewGame = useCallback(() => {
+    stopAll();
     reset();
     resetGuides();
     setShowMenu(false);

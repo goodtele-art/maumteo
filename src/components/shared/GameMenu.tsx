@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Modal from "./Modal.tsx";
+import AudioSettings from "./AudioSettings.tsx";
 
 interface GameMenuProps {
   onClose: () => void;
@@ -27,6 +28,10 @@ export default function GameMenu({ onClose, onNewGame, onSave, onShowAchievement
         >
           🏆 업적
         </button>
+
+        <div className="border-t border-theme-default pt-2 mt-2">
+          <AudioSettings />
+        </div>
 
         {!confirmReset ? (
           <button
