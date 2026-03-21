@@ -184,8 +184,8 @@ function PsychologistHireSection({ stageAp }: { stageAp: number }) {
   const currentTurn = useGameStore((s) => s.currentTurn);
   const activeStage = useGameStore((s) => s.activeStage);
   const gold = useGameStore((s) => s.gold);
-  const childPsy = useGameStore((s) => s.childStage?.psychologists ?? {});
-  const infantPsy = useGameStore((s) => s.infantStage?.psychologists ?? {});
+  const childPsy = useGameStore((s) => (s.childStage as unknown as Record<string, unknown>)?.psychologists as Record<string, { id: string; name: string; skill: number; salary: number; maxAssessments: number }> ?? {});
+  const infantPsy = useGameStore((s) => (s.infantStage as unknown as Record<string, unknown>)?.psychologists as Record<string, { id: string; name: string; skill: number; salary: number; maxAssessments: number }> ?? {});
   const hirePsychologist = useGameStore((s) => s.hirePsychologist);
 
   // 아동(턴 33+), 영유아(턴 63+)만 가능
@@ -226,6 +226,16 @@ function PsychologistHireSection({ stageAp }: { stageAp: number }) {
         onClick={() => {
           if (affordable) {
             hirePsychologist(activeStage as "child" | "infant", name, skill, salary);
+            // 골드/AP 차감
+            const stageKey = activeStage === "child" ? "childStage" : "infantStage";
+            useGameStore.setState((prev) => {
+              const sd = prev[stageKey];
+              if (!sd) return { gold: prev.gold - hireCost };
+              return {
+                gold: prev.gold - hireCost,
+                [stageKey]: { ...sd, ap: sd.ap - AP_COST.hire },
+              };
+            });
             useGameStore.getState().addNotification(`${name} 임상심리사 고용 완료!`, "success");
           }
         }}
