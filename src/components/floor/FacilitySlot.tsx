@@ -11,11 +11,11 @@ function getTemplate(type: string): { label: string; effect: string; description
   if (type in FACILITY_TEMPLATES) return (FACILITY_TEMPLATES as Record<string, typeof FACILITY_TEMPLATES[keyof typeof FACILITY_TEMPLATES]>)[type]!;
   if (type in CHILD_FACILITY_TEMPLATES) {
     const t = (CHILD_FACILITY_TEMPLATES as Record<string, typeof CHILD_FACILITY_TEMPLATES[keyof typeof CHILD_FACILITY_TEMPLATES]>)[type]!;
-    return { label: t.label, effect: t.effect, description: t.effect };
+    return { label: t.label, effect: t.effect, description: t.description };
   }
   if (type in INFANT_FACILITY_TEMPLATES) {
     const t = (INFANT_FACILITY_TEMPLATES as Record<string, typeof INFANT_FACILITY_TEMPLATES[keyof typeof INFANT_FACILITY_TEMPLATES]>)[type]!;
-    return { label: t.label, effect: t.effect, description: t.effect };
+    return { label: t.label, effect: t.effect, description: t.description };
   }
   return null;
 }

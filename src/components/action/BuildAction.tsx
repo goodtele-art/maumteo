@@ -22,7 +22,7 @@ function getEntries(stage: string, currentTurn: number): FacilityEntry[] {
       .filter(([, t]) => t.unlockTurn <= currentTurn)
       .map(([type, t]) => ({
         type, label: t.label, buildCost: t.buildCost, upkeepPerTurn: t.upkeepPerTurn,
-        emReduction: t.emReduction, description: t.effect, unlockTurn: t.unlockTurn,
+        emReduction: t.emReduction, description: t.description, unlockTurn: t.unlockTurn,
       }));
   }
   if (stage === "infant") {
@@ -30,7 +30,7 @@ function getEntries(stage: string, currentTurn: number): FacilityEntry[] {
       .filter(([, t]) => t.unlockTurn <= currentTurn)
       .map(([type, t]) => ({
         type, label: t.label, buildCost: t.buildCost, upkeepPerTurn: t.upkeepPerTurn,
-        emReduction: t.emReduction, description: t.effect, unlockTurn: t.unlockTurn,
+        emReduction: t.emReduction, description: t.description, unlockTurn: t.unlockTurn,
       }));
   }
   // 성인

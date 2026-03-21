@@ -191,6 +191,7 @@ export function getInfantMatchMultiplier(
 // ── 치료실 템플릿 ──
 export interface InfantFacilityTemplate {
   label: string;
+  description: string;
   buildCost: number;
   upkeepPerTurn: number;
   emReduction: number;
@@ -202,27 +203,32 @@ export interface InfantFacilityTemplate {
 
 export const INFANT_FACILITY_TEMPLATES: Record<InfantFacilityType, InfantFacilityTemplate> = {
   infant_play: {
-    label: "영유아 놀이실", buildCost: 100, upkeepPerTurn: 8, emReduction: 7,
+    label: "영유아 놀이실", description: "기본 치료 공간. 발달놀이/애착중재 시너지.",
+    buildCost: 100, upkeepPerTurn: 8, emReduction: 7,
     effect: "none", synergySpecialties: ["developmental", "attachment_therapy"],
     bonusIssues: [], unlockTurn: 61,
   },
   sensory_room: {
-    label: "감각통합실", buildCost: 180, upkeepPerTurn: 15, emReduction: 9,
+    label: "감각통합실", description: "감각/자폐/발달지연 EM 감소 ×1.5.",
+    buildCost: 180, upkeepPerTurn: 15, emReduction: 9,
     effect: "issue_bonus", synergySpecialties: ["sensory_integration", "developmental"],
     bonusIssues: ["sensory", "asd_early", "dev_delay"], unlockTurn: 61,
   },
   parent_coaching: {
-    label: "부모코칭실", buildCost: 120, upkeepPerTurn: 10, emReduction: 5,
+    label: "부모코칭실", description: "부모참여도 자연감소 완화. 부모매개 중재 강화.",
+    buildCost: 120, upkeepPerTurn: 10, emReduction: 5,
     effect: "parent_boost", synergySpecialties: ["attachment_therapy", "aba"],
     bonusIssues: [], unlockTurn: 65,
   },
   language_lab: {
-    label: "언어치료실", buildCost: 150, upkeepPerTurn: 12, emReduction: 8,
+    label: "언어치료실", description: "언어지연 EM 감소 ×1.5.",
+    buildCost: 150, upkeepPerTurn: 12, emReduction: 8,
     effect: "issue_bonus", synergySpecialties: ["speech_language", "developmental"],
     bonusIssues: ["speech_delay"], unlockTurn: 70,
   },
   structured_teaching: {
-    label: "구조화교실", buildCost: 200, upkeepPerTurn: 18, emReduction: 10,
+    label: "구조화교실", description: "자폐스펙트럼 EM 감소 ×1.5. ABA 시너지.",
+    buildCost: 200, upkeepPerTurn: 18, emReduction: 10,
     effect: "issue_bonus", synergySpecialties: ["aba"],
     bonusIssues: ["asd_early"], unlockTurn: 75,
   },

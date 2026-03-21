@@ -238,7 +238,11 @@ export function useGameActions() {
       : RAPPORT_PER_TREATMENT;
 
     // 주 내담자 치료 효과 계산
-    const { finalEffect } = calcFacilityTreatEffect(facility, skill, patient.rapport, specialty, patient.dominantIssue, stage);
+    let { finalEffect } = calcFacilityTreatEffect(facility, skill, patient.rapport, specialty, patient.dominantIssue, stage);
+
+    // 심리검사 완료 보너스 (×1.5)
+    const isAssessed = (patient as unknown as Record<string, unknown>).assessed === true;
+    if (isAssessed) finalEffect *= 1.5;
 
     const emBefore = patient.em;
     const emAfter = clampEM(patient.em - finalEffect);
@@ -697,5 +701,67 @@ export function useGameActions() {
     return true;
   }, []);
 
-  return { treat, build, hire, encourage, upgrade, demolish, fire };
+  const assess = useCallback((patientId: string) => {
+    const s = useGameStore.getState();
+    const stage = s.activeStage;
+
+    // 아동/영유아만 가능
+    if (stage !== "child" && stage !== "infant") return false;
+
+    const stageData = stage === "child" ? s.childStage : s.infantStage;
+    if (!stageData) return false;
+
+    const ap = stageData.ap;
+    if (ap < 1) return false;
+
+    // 임상심리사 확인
+    const psychologists = (stageData as unknown as Record<string, unknown>).psychologists as Record<string, { id: string; name: string; assessmentsThisTurn: number; maxAssessments: number }> | undefined;
+    if (!psychologists) return false;
+    const availPsy = Object.values(psychologists).find(
+      (p) => p.assessmentsThisTurn < p.maxAssessments,
+    );
+    if (!availPsy) return false;
+
+    // 환자 확인
+    const patient = stageData.patients[patientId];
+    if (!patient) return false;
+    if ((patient as unknown as Record<string, unknown>).assessed) {
+      useGameStore.getState().addNotification(`${patient.name}은(는) 이미 검사를 받았습니다`, "info");
+      return false;
+    }
+
+    // 검사 실행
+    const stageKey = stage === "child" ? "childStage" : "infantStage";
+    useGameStore.setState((prev) => {
+      const sd = prev[stageKey];
+      if (!sd) return {};
+      const psyAll = (sd as unknown as Record<string, unknown>).psychologists as Record<string, Record<string, unknown>> | undefined;
+      if (!psyAll) return {};
+      const psyEntry = psyAll[availPsy.id];
+      const pt = sd.patients[patientId];
+      if (!psyEntry || !pt) return {};
+      return {
+        [stageKey]: {
+          ...sd,
+          ap: sd.ap - 1,
+          psychologists: {
+            ...psyAll,
+            [availPsy.id]: { ...psyEntry, assessmentsThisTurn: (psyEntry.assessmentsThisTurn as number) + 1 },
+          },
+          patients: {
+            ...sd.patients,
+            [patientId]: { ...pt, assessed: true },
+          },
+        },
+      };
+    });
+
+    useGameStore.getState().addNotification(
+      `${availPsy.name} 심리사가 ${patient.name}의 심리검사를 완료했습니다 (이후 치료효과 ×1.5)`,
+      "success",
+    );
+    return true;
+  }, []);
+
+  return { treat, build, hire, encourage, upgrade, demolish, assess, fire };
 }

@@ -94,6 +94,11 @@ export default function PatientCard({ patient, onTreat, onEncourage }: PatientCa
               >
                 {ALL_ISSUE_LABELS[patient.dominantIssue] ?? patient.dominantIssue}
               </span>
+              {Boolean((patient as unknown as Record<string, unknown>).assessed) && (
+                <span className="text-[10px] px-1 py-0.5 rounded bg-purple-900/40 text-purple-300" title="심리검사 완료 — 치료효과 ×1.5">
+                  검사완료
+                </span>
+              )}
             </div>
             <div className="flex gap-1.5 shrink-0 ml-2">
               <button

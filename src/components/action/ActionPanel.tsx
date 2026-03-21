@@ -66,6 +66,20 @@ export default function ActionPanel() {
     },
   ];
 
+  // 심리검사 버튼 (아동/영유아 센터 + 임상심리사 고용 시)
+  const hasPsychologist = (activeStage === "child" && childStage && Object.keys(childStage.psychologists ?? {}).length > 0)
+    || (activeStage === "infant" && infantStage && Object.keys(infantStage.psychologists ?? {}).length > 0);
+  if (hasPsychologist) {
+    actions.splice(1, 0, {
+      label: "심리검사",
+      cost: 1,
+      costLabel: "AP 1",
+      icon: <span className="text-lg">🧪</span>,
+      disabled: stagePatients.length === 0,
+      onClick: () => openModal("treat"), // treat 모달에서 검사 모드도 처리
+    });
+  }
+
   return (
     <div className="rounded-lg p-3 glass-card">
       <h3 className="text-sm font-medium text-theme-secondary mb-3">

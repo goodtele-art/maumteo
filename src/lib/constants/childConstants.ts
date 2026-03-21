@@ -172,6 +172,7 @@ export function getChildMatchMultiplier(
 // ── 치료실 템플릿 ──
 export interface ChildFacilityTemplate {
   label: string;
+  description: string;
   buildCost: number;
   upkeepPerTurn: number;
   emReduction: number;
@@ -183,32 +184,38 @@ export interface ChildFacilityTemplate {
 
 export const CHILD_FACILITY_TEMPLATES: Record<ChildFacilityType, ChildFacilityTemplate> = {
   play_room: {
-    label: "놀이치료실", buildCost: 120, upkeepPerTurn: 10, emReduction: 8,
+    label: "놀이치료실", description: "라포 쌓기 효과 2배. 놀이치료/아동CBT 시너지.",
+    buildCost: 120, upkeepPerTurn: 10, emReduction: 8,
     effect: "rapport_boost", synergySpecialties: ["play_therapy", "child_cbt"],
     bonusIssues: [], unlockTurn: 32,
   },
   parent_room: {
-    label: "부모상담실", buildCost: 100, upkeepPerTurn: 8, emReduction: 5,
+    label: "부모상담실", description: "부모참여도 자연감소 완화. 부모훈련/가족치료 시너지.",
+    buildCost: 100, upkeepPerTurn: 8, emReduction: 5,
     effect: "parent_boost", synergySpecialties: ["parent_training", "family_therapy"],
     bonusIssues: [], unlockTurn: 31,
   },
   group_activity: {
-    label: "사회기술훈련실", buildCost: 160, upkeepPerTurn: 14, emReduction: 7,
+    label: "사회기술훈련실", description: "동시 치료 (각 70%). ADHD/행동조절 보너스.",
+    buildCost: 160, upkeepPerTurn: 14, emReduction: 7,
     effect: "group_treat", synergySpecialties: ["parent_training", "dbt_a"],
     bonusIssues: ["adhd", "behavior_regulation"], unlockTurn: 35,
   },
   exposure_child: {
-    label: "아동노출치료실", buildCost: 180, upkeepPerTurn: 15, emReduction: 10,
+    label: "아동노출치료실", description: "불안/강박/트라우마 EM 감소 ×1.5.",
+    buildCost: 180, upkeepPerTurn: 15, emReduction: 10,
     effect: "issue_bonus", synergySpecialties: ["child_cbt", "tf_cbt"],
     bonusIssues: ["child_anxiety", "child_ocd", "child_trauma"], unlockTurn: 40,
   },
   nutrition_clinic: {
-    label: "영양치료실", buildCost: 150, upkeepPerTurn: 12, emReduction: 6,
+    label: "영양치료실", description: "섭식장애 EM 감소 ×1.5.",
+    buildCost: 150, upkeepPerTurn: 12, emReduction: 6,
     effect: "issue_bonus", synergySpecialties: ["family_therapy", "dbt_a"],
     bonusIssues: ["eating_disorder"], unlockTurn: 45,
   },
   crisis_room: {
-    label: "위기개입실", buildCost: 200, upkeepPerTurn: 18, emReduction: 9,
+    label: "위기개입실", description: "정서위기 EM 감소 ×1.5. 위기 시 사고 방지.",
+    buildCost: 200, upkeepPerTurn: 18, emReduction: 9,
     effect: "crisis_protect", synergySpecialties: ["dbt_a", "tf_cbt"],
     bonusIssues: ["emotion_crisis"], unlockTurn: 48,
   },
