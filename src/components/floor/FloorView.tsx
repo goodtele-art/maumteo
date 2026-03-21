@@ -13,6 +13,7 @@ interface FloorViewProps {
   onEncourage: (patientId: string) => void;
   onBuild: (slotIndex: number) => void;
   onUpgrade: (facilityId: string) => void;
+  onDemolish: (facilityId: string) => void;
   onFire: (counselorId: string) => void;
 }
 
@@ -73,7 +74,7 @@ function useStageData() {
   };
 }
 
-export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, onFire }: FloorViewProps) {
+export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, onDemolish, onFire }: FloorViewProps) {
   const { stage, selectedFloorId, facilities, patients } = useStageData();
   const currentTurn = useGameStore((s) => s.currentTurn);
   const [sortMode, setSortMode] = useState<SortMode>("default");
@@ -122,6 +123,7 @@ export default function FloorView({ onTreat, onEncourage, onBuild, onUpgrade, on
                     slotIndex={facility.slotIndex}
                     onBuild={onBuild}
                     onUpgrade={onUpgrade}
+                    onDemolish={onDemolish}
                   />
                 ))}
                 {nextEmptySlot !== undefined && (

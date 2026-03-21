@@ -46,18 +46,54 @@ function getSpecialtyInfo(specialty: string): { label: string; optimalLabels: st
   return { label: specialty, optimalLabels: "" };
 }
 
+const ORDER_KEY = "maumteo_counselor_order";
+
+function getSavedOrder(stageId: string): string[] {
+  try {
+    const raw = localStorage.getItem(`${ORDER_KEY}_${stageId}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function saveOrder(stageId: string, ids: string[]) {
+  localStorage.setItem(`${ORDER_KEY}_${stageId}`, JSON.stringify(ids));
+}
+
+function sortByOrder(list: AnyCounselor[], order: string[]): AnyCounselor[] {
+  if (order.length === 0) return list;
+  const orderMap = new Map(order.map((id, i) => [id, i]));
+  return [...list].sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+}
+
 export default function CounselorPanel({ onFire }: CounselorPanelProps) {
   const activeStage = useGameStore((s) => s.activeStage);
   const adultCounselors = useGameStore((s) => s.counselors);
   const childStage = useGameStore((s) => s.childStage);
   const infantStage = useGameStore((s) => s.infantStage);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [, setOrderKey] = useState(0); // force re-render on reorder
 
-  const list: AnyCounselor[] = activeStage === "child" && childStage
+  const rawList: AnyCounselor[] = activeStage === "child" && childStage
     ? Object.values(childStage.counselors)
     : activeStage === "infant" && infantStage
       ? Object.values(infantStage.counselors)
       : Object.values(adultCounselors);
+  const list = sortByOrder(rawList, getSavedOrder(activeStage));
+
+  const moveUp = (idx: number) => {
+    if (idx <= 0) return;
+    const ids = list.map(c => c.id);
+    [ids[idx - 1], ids[idx]] = [ids[idx]!, ids[idx - 1]!];
+    saveOrder(activeStage, ids);
+    setOrderKey(k => k + 1);
+  };
+  const moveDown = (idx: number) => {
+    if (idx >= list.length - 1) return;
+    const ids = list.map(c => c.id);
+    [ids[idx], ids[idx + 1]] = [ids[idx + 1]!, ids[idx]!];
+    saveOrder(activeStage, ids);
+    setOrderKey(k => k + 1);
+  };
 
   return (
     <div className="glass-card rounded-lg p-3 mt-3">
@@ -73,13 +109,15 @@ export default function CounselorPanel({ onFire }: CounselorPanelProps) {
       ) : (
         <div className="space-y-1.5">
           <AnimatePresence mode="popLayout">
-            {list.map((c) => (
+            {list.map((c, idx) => (
               <CounselorRow
                 key={c.id}
                 counselor={c}
                 isConfirming={confirmId === c.id}
                 onConfirmToggle={() => setConfirmId(confirmId === c.id ? null : c.id)}
                 onFire={() => { onFire(c.id); setConfirmId(null); }}
+                onMoveUp={idx > 0 ? () => moveUp(idx) : undefined}
+                onMoveDown={idx < list.length - 1 ? () => moveDown(idx) : undefined}
               />
             ))}
           </AnimatePresence>
@@ -98,9 +136,11 @@ interface CounselorRowProps {
   isConfirming: boolean;
   onConfirmToggle: () => void;
   onFire: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }
 
-function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: CounselorRowProps) {
+function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire, onMoveUp, onMoveDown }: CounselorRowProps) {
   const info = getSpecialtyInfo(counselor.specialty);
 
   return (
@@ -134,7 +174,16 @@ function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: Coun
         </div>
       </div>
 
-      <div className="flex justify-end mt-1.5">
+      <div className="flex items-center justify-between mt-1.5">
+        <div className="flex gap-1">
+          {onMoveUp && (
+            <button onClick={onMoveUp} className="text-xs px-1.5 py-0.5 text-theme-tertiary hover:text-theme-primary transition-colors" title="위로">▲</button>
+          )}
+          {onMoveDown && (
+            <button onClick={onMoveDown} className="text-xs px-1.5 py-0.5 text-theme-tertiary hover:text-theme-primary transition-colors" title="아래로">▼</button>
+          )}
+        </div>
+        <div className="flex gap-1.5">
         {isConfirming ? (
           <div className="flex gap-1.5">
             <button
@@ -158,6 +207,7 @@ function CounselorRow({ counselor, isConfirming, onConfirmToggle, onFire }: Coun
             해고
           </button>
         )}
+        </div>
       </div>
     </m.div>
   );

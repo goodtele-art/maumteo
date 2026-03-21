@@ -626,6 +626,43 @@ export function useGameActions() {
     return true;
   }, []);
 
+  const demolish = useCallback((facilityId: string) => {
+    const s = useGameStore.getState();
+    const facility = getStageFacility(s, facilityId);
+    if (!facility) return false;
+    const demolishCost = Math.ceil(facility.buildCost / 2);
+    if (getStageAp(s) < 2 || s.gold < demolishCost) return false;
+
+    const allTemplates: Record<string, { label: string }> = {
+      ...FACILITY_TEMPLATES,
+      ...CHILD_FACILITY_TEMPLATES as unknown as Record<string, { label: string }>,
+      ...INFANT_FACILITY_TEMPLATES as unknown as Record<string, { label: string }>,
+    };
+    const label = allTemplates[facility.type]?.label ?? facility.type;
+
+    useGameStore.setState((prev) => {
+      if (prev.activeStage === "child" && prev.childStage) {
+        const { [facilityId]: _, ...rest } = prev.childStage.facilities;
+        return {
+          gold: prev.gold - demolishCost,
+          childStage: { ...prev.childStage, ap: prev.childStage.ap - 2, facilities: rest },
+        };
+      }
+      if (prev.activeStage === "infant" && prev.infantStage) {
+        const { [facilityId]: _, ...rest } = prev.infantStage.facilities;
+        return {
+          gold: prev.gold - demolishCost,
+          infantStage: { ...prev.infantStage, ap: prev.infantStage.ap - 2, facilities: rest },
+        };
+      }
+      const { [facilityId]: _, ...rest } = prev.facilities;
+      return { gold: prev.gold - demolishCost, ap: prev.ap - 2, facilities: rest };
+    });
+
+    useGameStore.getState().addNotification(`${label} 철거 완료`, "info");
+    return true;
+  }, []);
+
   const fire = useCallback((counselorId: string) => {
     const s = useGameStore.getState();
     const stage = s.activeStage;
@@ -660,5 +697,5 @@ export function useGameActions() {
     return true;
   }, []);
 
-  return { treat, build, hire, encourage, upgrade, fire };
+  return { treat, build, hire, encourage, upgrade, demolish, fire };
 }

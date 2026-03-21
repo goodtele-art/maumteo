@@ -1,7 +1,7 @@
 import { useGameStore } from "@/store/gameStore.ts";
 import ResourceDisplay from "@/components/shared/ResourceDisplay.tsx";
 import ThemeToggle from "@/components/shared/ThemeToggle.tsx";
-import { IconMenu, IconAP, IconGold } from "@/components/shared/GameIcons.tsx";
+import { IconMenu, IconGold } from "@/components/shared/GameIcons.tsx";
 import { getReputationGrade } from "@/lib/constants.ts";
 import type { ThemeMode } from "@/hooks/useTheme.ts";
 
@@ -59,7 +59,8 @@ export default function TopBar({ onEndTurn, onOpenMenu, onToggleSidebar, theme, 
       {/* 모바일에서는 축약 표시 */}
       <div className="sm:hidden flex items-center gap-3 text-xs">
         <span className="flex items-center gap-1 text-yellow-400"><IconGold size={14} className="text-yellow-400" />{gold}</span>
-        <span className="flex items-center gap-1 text-green-400"><IconAP size={14} className="text-green-400" />{ap}</span>
+        <span className="flex items-center gap-1 text-amber-300">★ {reputation}</span>
+        <span className="flex items-center gap-1 text-green-400">⚡ {ap}/{maxAp}</span>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />

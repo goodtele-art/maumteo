@@ -24,6 +24,7 @@ interface FacilitySlotProps {
   slotIndex: number;
   onBuild: (slotIndex: number) => void;
   onUpgrade?: (facilityId: string) => void;
+  onDemolish?: (facilityId: string) => void;
 }
 
 export default function FacilitySlot({
@@ -31,6 +32,7 @@ export default function FacilitySlot({
   slotIndex,
   onBuild,
   onUpgrade,
+  onDemolish,
 }: FacilitySlotProps) {
   if (!facility) {
     return (
@@ -59,17 +61,33 @@ export default function FacilitySlot({
           <FacilityIllustration type={facility.type} level={facility.level} label={template.label} size="md" />
         </div>
         <div className="flex-1 min-w-0 p-2.5 flex flex-col justify-center">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-1">
             <div className="text-sm font-medium truncate">{template.label}</div>
-            {canUpgrade && onUpgrade && (
-              <button
-                onClick={() => onUpgrade(facility.id)}
-                className="shrink-0 text-xs px-3 py-1.5 bg-amber-900/30 text-amber-400 rounded-lg hover:bg-amber-900/50 transition-colors"
-                title={`업그레이드 비용: ${Math.ceil(facility.buildCost * 0.5 * facility.level)}골드`}
-              >
-                ⬆
-              </button>
-            )}
+            <div className="flex gap-1 shrink-0">
+              {canUpgrade && onUpgrade && (
+                <button
+                  onClick={() => onUpgrade(facility.id)}
+                  className="text-xs px-2 py-1 bg-amber-900/30 text-amber-400 rounded hover:bg-amber-900/50 transition-colors"
+                  title={`업그레이드 비용: ${Math.ceil(facility.buildCost * 0.5 * facility.level)}골드`}
+                >
+                  ⬆
+                </button>
+              )}
+              {onDemolish && (
+                <button
+                  onClick={() => {
+                    const cost = Math.ceil(facility.buildCost / 2);
+                    if (confirm(`${template.label}을(를) 철거하시겠습니까?\n철거비용: ${cost}골드 + AP 2`)) {
+                      onDemolish(facility.id);
+                    }
+                  }}
+                  className="text-xs px-2 py-1 bg-red-900/20 text-red-400/70 rounded hover:bg-red-900/40 hover:text-red-400 transition-colors"
+                  title="철거"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
           <div className="text-xs text-theme-tertiary mt-0.5">
             Lv.{facility.level} · EM -{facility.emReduction} · 유지비 {facility.upkeepPerTurn}

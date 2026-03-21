@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { IconGold, IconReputation, IconAP } from "@/components/shared/GameIcons.tsx";
+import { IconGold } from "@/components/shared/GameIcons.tsx";
 
 function useAnimatedNumber(target: number, duration = 400): { value: number; changed: boolean } {
   const [display, setDisplay] = useState(target);
@@ -59,14 +59,14 @@ export default function ResourceDisplay({
         </span>
       </div>
       <div className="flex items-center gap-1.5" title="평판">
-        <IconReputation size={16} className="text-blue-400" />
-        <span className={`tabular-nums font-mono transition-colors duration-300 ${animRep.changed ? "text-blue-300" : ""}`}>
+        <span className="text-amber-400">★</span>
+        <span className={`tabular-nums font-mono text-amber-300 transition-colors duration-300 ${animRep.changed ? "text-amber-200" : ""}`}>
           {animRep.value}
         </span>
       </div>
       <div className="flex items-center gap-1.5" title="행동력">
-        <IconAP size={16} className="text-green-400" />
-        <span className={`tabular-nums font-mono transition-colors duration-300 ${animAp.changed ? "text-green-300" : ""}`}>
+        <span className="text-green-400 text-base">⚡</span>
+        <span className={`tabular-nums font-mono text-green-300 transition-colors duration-300 ${animAp.changed ? "text-green-200" : ""}`}>
           {animAp.value}/{maxAp}
         </span>
       </div>

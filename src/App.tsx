@@ -41,7 +41,7 @@ import type { TurnEvent, Patient, FacilityType } from "@/types/index.ts";
 
 export default function App() {
   const { save, load, reset, hasSave } = useSave();
-  const { treat, build, hire, encourage, upgrade, fire } = useGameActions();
+  const { treat, build, hire, encourage, upgrade, demolish, fire } = useGameActions();
   const { currentGuide, showGuide, dismissGuide, resetGuides } = useGuide();
   useAudioManager();
   const activeModal = useGameStore((s) => s.activeModal);
@@ -396,6 +396,7 @@ export default function App() {
           onEncourage={handleEncourage}
           onBuild={handleBuildSlot}
           onUpgrade={handleUpgrade}
+          onDemolish={demolish}
           onFire={fire}
         />
         <TurnLog />

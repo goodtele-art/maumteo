@@ -37,13 +37,15 @@ export default function ActionPanel() {
   const actions: Array<{
     label: string;
     cost: number;
+    costLabel?: string;
     icon: ReactNode;
     disabled: boolean;
     onClick: () => void;
   }> = [
     {
       label: "상담/격려",
-      cost: AP_COST.encourage,
+      cost: 0, // 특수 처리: 상담 AP 2 / 격려 AP 1
+      costLabel: `AP ${AP_COST.encourage}`,
       icon: <IconTreat size={18} />,
       disabled: floorPatients.length === 0,
       onClick: () => openModal("treat"),
@@ -71,7 +73,7 @@ export default function ActionPanel() {
       </h3>
       <div className="space-y-2">
         {actions.map((action) => {
-          const canDo = ap >= action.cost && !action.disabled;
+          const canDo = (action.cost === 0 ? ap >= AP_COST.encourage : ap >= action.cost) && !action.disabled;
           return (
             <button
               key={action.label}
@@ -88,7 +90,7 @@ export default function ActionPanel() {
               <span
                 className={`text-xs ${canDo ? "text-green-400" : "text-theme-disabled"}`}
               >
-                AP {action.cost}
+                {action.costLabel ?? `AP ${action.cost}`}
               </span>
             </button>
           );
