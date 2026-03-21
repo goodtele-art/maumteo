@@ -67,8 +67,17 @@ export default function ActionPanel() {
   ];
 
   // 심리검사 버튼 (아동/영유아 센터 + 임상심리사 고용 시)
-  const hasPsychologist = (activeStage === "child" && childStage && Object.keys((childStage as unknown as Record<string, unknown>).psychologists ?? {}).length > 0)
-    || (activeStage === "infant" && infantStage && Object.keys((infantStage as unknown as Record<string, unknown>).psychologists ?? {}).length > 0);
+  // 임상심리사 고용 여부 (안전한 접근)
+  let hasPsychologist = false;
+  try {
+    if (activeStage === "child" && childStage) {
+      const psy = (childStage as unknown as { psychologists?: Record<string, unknown> }).psychologists;
+      hasPsychologist = !!psy && Object.keys(psy).length > 0;
+    } else if (activeStage === "infant" && infantStage) {
+      const psy = (infantStage as unknown as { psychologists?: Record<string, unknown> }).psychologists;
+      hasPsychologist = !!psy && Object.keys(psy).length > 0;
+    }
+  } catch { /* ignore */ }
   if (hasPsychologist) {
     actions.splice(1, 0, {
       label: "심리검사",

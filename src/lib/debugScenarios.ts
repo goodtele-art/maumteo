@@ -129,6 +129,9 @@ function initTurn60() {
 
 /** 디버그 시나리오 적용 */
 export function applyDebugScenario(turn: number): boolean {
+  // 기존 세이브 클리어 (디버그 시나리오는 항상 클린 스타트)
+  localStorage.removeItem("maumteo_save_v1");
+
   if (turn === 30) {
     initTurn30();
     return true;
