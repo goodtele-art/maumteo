@@ -126,7 +126,8 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
   const handleSelectFacility = (facilityId: string | null) => {
     if (facilityId) {
       const fac = facilities[facilityId];
-      if (fac?.type === "group_room") {
+      const GROUP_FACILITY_TYPES = ["group_room", "group_activity"];
+      if (fac && GROUP_FACILITY_TYPES.includes(fac.type)) {
         setSelectedFacilityId(facilityId);
         setStep("group");
         return;
@@ -220,7 +221,7 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
         <div className="space-y-1.5 max-h-60 overflow-y-auto">
           {floorFacilities.map((fac) => {
             const template = ALL_FACILITY_TEMPLATES[fac.type] ?? FACILITY_TEMPLATES[fac.type as import("@/types/index.ts").FacilityType];
-            const isGroup = fac.type === "group_room";
+            const isGroup = fac.type === "group_room" || (fac.type as string) === "group_activity";
             return (
               <button
                 key={fac.id}

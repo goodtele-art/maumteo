@@ -286,7 +286,8 @@ export function useGameActions() {
 
     // 집단상담실: 플레이어가 선택한 추가 내담자 치료 (각 70%)
     const groupResults: Array<{ name: string; emBefore: number; emAfter: number }> = [];
-    if (facility?.type === "group_room" && groupPatientIds && groupPatientIds.length > 0) {
+    const isGroupFacility = facility?.type === "group_room" || (facility?.type as string) === "group_activity";
+    if (isGroupFacility && groupPatientIds && groupPatientIds.length > 0) {
       for (const gpId of groupPatientIds) {
         const currentState = useGameStore.getState();
         const gp = getStagePatient(currentState, gpId);
