@@ -69,6 +69,7 @@ export default function App() {
   const feedbackCounter = useRef(0);
   const prevGradeRef = useRef<string | null>(null);
   const endingShownRef = useRef<Set<string>>(new Set());
+  const pendingEndingRef = useRef<"A" | "S" | null>(null);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -178,14 +179,14 @@ export default function App() {
     }
     prevGradeRef.current = newGrade;
 
-    // ── 엔딩 체크 ──
+    // ── 엔딩 체크 (턴 결과 확인 후 표시하기 위해 지연) ──
     if (result.currentTurn === ENDING_A_TURN + 1 && !endingShownRef.current.has("A")) {
       endingShownRef.current.add("A");
-      setEndingType("A");
+      pendingEndingRef.current = "A";
     }
     if (result.currentTurn === ENDING_S_TURN + 1 && !endingShownRef.current.has("S")) {
       endingShownRef.current.add("S");
-      setEndingType("S");
+      pendingEndingRef.current = "S";
     }
 
     // ── Stage 특수 이벤트 트리거 ──
@@ -447,7 +448,14 @@ export default function App() {
           open
           turn={turnResult.turn}
           events={turnResult.events}
-          onClose={() => setTurnResult(null)}
+          onClose={() => {
+            setTurnResult(null);
+            // 턴 결과 확인 후 대기 중인 엔딩 표시
+            if (pendingEndingRef.current) {
+              setEndingType(pendingEndingRef.current);
+              pendingEndingRef.current = null;
+            }
+          }}
         />
       )}
 
