@@ -44,8 +44,8 @@ export default function ActionPanel() {
   }> = [
     {
       label: "상담/격려",
-      cost: 0, // 특수 처리: 상담 AP 2 / 격려 AP 1
-      costLabel: `AP ${AP_COST.encourage}`,
+      cost: 0, // 특수 처리
+      costLabel: `AP ${AP_COST.treat}/${AP_COST.encourage}`,
       icon: <IconTreat size={18} />,
       disabled: floorPatients.length === 0,
       onClick: () => openModal("treat"),

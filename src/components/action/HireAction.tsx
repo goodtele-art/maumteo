@@ -171,9 +171,76 @@ export default function HireAction({ open, onClose, onHire }: HireActionProps) {
       )}
       <p className="text-xs text-theme-tertiary mt-3">매 턴 새로운 지원자가 나타납니다</p>
 
+      {/* 임상심리사 고용 */}
+      <PsychologistHireSection stageAp={stageAp} />
+
       {/* 부센터장 고용 */}
       <ViceDirectorHireSection stageAp={stageAp} />
     </Modal>
+  );
+}
+
+function PsychologistHireSection({ stageAp }: { stageAp: number }) {
+  const currentTurn = useGameStore((s) => s.currentTurn);
+  const activeStage = useGameStore((s) => s.activeStage);
+  const gold = useGameStore((s) => s.gold);
+  const childPsy = useGameStore((s) => s.childStage?.psychologists ?? {});
+  const infantPsy = useGameStore((s) => s.infantStage?.psychologists ?? {});
+  const hirePsychologist = useGameStore((s) => s.hirePsychologist);
+
+  // 아동(턴 33+), 영유아(턴 63+)만 가능
+  if (activeStage === "adult") return null;
+  const unlockTurn = activeStage === "child" ? 33 : 63;
+  if (currentTurn < unlockTurn) return null;
+
+  const psychologists = activeStage === "child" ? childPsy : infantPsy;
+  const psyCount = Object.keys(psychologists).length;
+
+  // 이미 고용됨
+  if (psyCount > 0) {
+    const psy = Object.values(psychologists)[0]!;
+    return (
+      <div className="mt-4 pt-3 border-t border-theme-default">
+        <div className="text-xs text-purple-400 mb-1">임상심리사</div>
+        <div className="text-sm text-theme-primary">
+          {psy.name} (실력 {psy.skill}) · 급여 {psy.salary}/턴 · 턴당 검사 {psy.maxAssessments}명
+        </div>
+      </div>
+    );
+  }
+
+  // 후보 생성
+  const seed = currentTurn * 17 + 3;
+  const surname = SURNAMES[seed % SURNAMES.length]!;
+  const given = GIVEN_NAMES[(seed >> 5) % GIVEN_NAMES.length]!;
+  const name = `${surname}${given}`;
+  const skill = 3 + (seed % 5); // 3~7
+  const salary = 25 + skill * 5; // 40~60
+  const hireCost = salary * 2;
+  const affordable = gold >= hireCost && stageAp >= AP_COST.hire;
+
+  return (
+    <div className="mt-4 pt-3 border-t border-theme-default">
+      <div className="text-xs text-purple-400 mb-2">임상심리사 고용 (심리검사 가능)</div>
+      <button
+        onClick={() => {
+          if (affordable) {
+            hirePsychologist(activeStage as "child" | "infant", name, skill, salary);
+            useGameStore.getState().addNotification(`${name} 임상심리사 고용 완료!`, "success");
+          }
+        }}
+        disabled={!affordable}
+        className={`w-full p-3 rounded-lg text-left transition-colors ${
+          affordable
+            ? "bg-purple-600/20 hover:bg-purple-600/30 text-theme-primary border border-purple-500/30"
+            : "bg-surface-card text-theme-tertiary cursor-not-allowed opacity-60"
+        }`}
+      >
+        <div className="text-sm font-medium">{name}</div>
+        <div className="text-xs text-purple-400 mt-0.5">실력 {skill} · 급여 {salary}/턴 · 턴당 검사 {skill >= 8 ? 3 : skill >= 4 ? 2 : 1}명</div>
+        <div className="text-xs text-theme-tertiary mt-0.5">고용비 {hireCost}G · 심리검사 시 치료효과 ×1.5</div>
+      </button>
+    </div>
   );
 }
 
