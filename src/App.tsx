@@ -92,6 +92,26 @@ export default function App() {
     prevGradeRef.current = getReputationGrade(rep).grade;
   }, [load]);
 
+  // 할 수 있는 행동이 없을 때 안내 (턴 1 전용, 이후에는 표시하지 않음)
+  const checkNothingToDo = useCallback(() => {
+    const s = useGameStore.getState();
+    if (s.currentTurn > 2) return; // 턴 1~2에서만 안내
+    const ap = s.activeStage === "child" && s.childStage ? s.childStage.ap
+      : s.activeStage === "infant" && s.infantStage ? s.infantStage.ap : s.ap;
+    const patients = s.activeStage === "child" && s.childStage
+      ? Object.values(s.childStage.patients)
+      : s.activeStage === "infant" && s.infantStage
+        ? Object.values(s.infantStage.patients)
+        : Object.values(s.patients);
+    const canTreat = ap >= 2 && patients.length > 0;
+    const canEncourage = ap >= 1 && patients.length > 0;
+    const canBuild = ap >= 3 && s.gold >= 100;
+    const canHire = ap >= 2 && s.gold >= 40;
+    if (!canTreat && !canEncourage && !canBuild && !canHire) {
+      setTimeout(() => showGuide("tutorial_end_turn"), 500);
+    }
+  }, [showGuide]);
+
   const handleEndTurn = useCallback(() => {
     sfxTurnAdvance();
     const prevRep = useGameStore.getState().reputation;
@@ -305,9 +325,10 @@ export default function App() {
             "info",
           );
         }
+        checkNothingToDo();
       }
     },
-    [treat, showGuide],
+    [treat, showGuide, checkNothingToDo],
   );
 
   const handleOpenTreat = useCallback((patientId: string) => {
@@ -323,9 +344,10 @@ export default function App() {
         feedbackCounter.current += 1;
         setTreatFeedback(result);
         showGuide("first_encourage");
+        checkNothingToDo();
       }
     },
-    [encourage, showGuide],
+    [encourage, showGuide, checkNothingToDo],
   );
 
   const handleUpgrade = useCallback(
@@ -383,7 +405,7 @@ export default function App() {
   if (showIntro) {
     return (
       <LazyMotion features={domAnimation}>
-        <IntroScreen onStart={() => setShowIntro(false)} />
+        <IntroScreen onStart={() => { setShowIntro(false); showGuide("tutorial_start"); }} />
       </LazyMotion>
     );
   }

@@ -1,4 +1,5 @@
-import { m } from "motion/react";
+import { useState } from "react";
+import { m, AnimatePresence } from "motion/react";
 import type { Facility } from "@/types/index.ts";
 import { FACILITY_TEMPLATES } from "@/lib/constants.ts";
 import { CHILD_FACILITY_TEMPLATES } from "@/lib/constants/childConstants.ts";
@@ -45,9 +46,11 @@ export default function FacilitySlot({
     );
   }
 
+  const [showDemolishConfirm, setShowDemolishConfirm] = useState(false);
   const template = getTemplate(facility.type);
   if (!template) return null;
   const canUpgrade = facility.level < 3;
+  const demolishCost = Math.ceil(facility.buildCost / 2);
 
   return (
     <m.div
@@ -75,12 +78,7 @@ export default function FacilitySlot({
               )}
               {onDemolish && (
                 <button
-                  onClick={() => {
-                    const cost = Math.ceil(facility.buildCost / 2);
-                    if (confirm(`${template.label}을(를) 철거하시겠습니까?\n철거비용: ${cost}골드 + AP 2`)) {
-                      onDemolish(facility.id);
-                    }
-                  }}
+                  onClick={() => setShowDemolishConfirm(true)}
                   className="text-xs px-2 py-1 bg-red-900/20 text-red-400/70 rounded hover:bg-red-900/40 hover:text-red-400 transition-colors"
                   title="철거"
                 >
@@ -99,6 +97,36 @@ export default function FacilitySlot({
           )}
         </div>
       </div>
+
+      {/* 철거 확인 오버레이 */}
+      <AnimatePresence>
+        {showDemolishConfirm && (
+          <m.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+            className="px-3 py-2.5 bg-red-950/90 border-t border-red-800/50"
+          >
+            <p className="text-xs text-red-200 mb-2">
+              {template.label} 철거 · 비용: {demolishCost}G + AP 2
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { onDemolish?.(facility.id); setShowDemolishConfirm(false); }}
+                className="text-xs px-3 py-1 bg-red-700 hover:bg-red-600 text-white rounded transition-colors"
+              >
+                철거
+              </button>
+              <button
+                onClick={() => setShowDemolishConfirm(false)}
+                className="text-xs px-3 py-1 bg-surface-card-hover text-theme-tertiary rounded hover:text-theme-primary transition-colors"
+              >
+                취소
+              </button>
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </m.div>
   );
 }

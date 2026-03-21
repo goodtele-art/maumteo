@@ -12,6 +12,24 @@ export interface GuideEntry {
 }
 
 export const GUIDES: Record<string, GuideEntry> = {
+  // ── 튜토리얼 ──
+  tutorial_start: {
+    id: "tutorial_start",
+    icon: "👋",
+    title: "마음터에 오신 것을 환영합니다!",
+    body: `내담자가 찾아왔습니다. 오른쪽 "상담/격려" 버튼을 눌러 첫 상담을 시작해보세요.
+
+상담사를 선택하고, 치료실을 선택하면 내담자의 EM이 줄어듭니다.`,
+  },
+  tutorial_end_turn: {
+    id: "tutorial_end_turn",
+    icon: "⏩",
+    title: "턴 종료",
+    body: `현재 할 수 있는 행동이 없습니다. 오른쪽 상단의 "턴 종료" 버튼을 눌러 다음 턴으로 이동하세요.
+
+새로운 내담자가 찾아오고, 행동력(AP)이 회복됩니다.`,
+  },
+
   // ── 첫 행동 가이드 ──
   first_treat: {
     id: "first_treat",
