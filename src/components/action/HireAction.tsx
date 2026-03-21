@@ -180,20 +180,18 @@ export default function HireAction({ open, onClose, onHire }: HireActionProps) {
   );
 }
 
+const EMPTY_PSY: Record<string, { id: string; name: string; skill: number; salary: number; maxAssessments: number }> = {};
+
 function PsychologistHireSection({ stageAp }: { stageAp: number }) {
   const currentTurn = useGameStore((s) => s.currentTurn);
   const activeStage = useGameStore((s) => s.activeStage);
   const gold = useGameStore((s) => s.gold);
-  const childPsy = useGameStore((s) => {
-    const cs = s.childStage;
-    if (!cs) return {};
-    return (cs as unknown as Record<string, unknown>).psychologists as Record<string, { id: string; name: string; skill: number; salary: number; maxAssessments: number }> ?? {};
-  });
-  const infantPsy = useGameStore((s) => {
-    const is_ = s.infantStage;
-    if (!is_) return {};
-    return (is_ as unknown as Record<string, unknown>).psychologists as Record<string, { id: string; name: string; skill: number; salary: number; maxAssessments: number }> ?? {};
-  });
+  const childPsy = useGameStore((s) =>
+    s.childStage?.psychologists as unknown as Record<string, { id: string; name: string; skill: number; salary: number; maxAssessments: number }> ?? EMPTY_PSY
+  );
+  const infantPsy = useGameStore((s) =>
+    s.infantStage?.psychologists as unknown as Record<string, { id: string; name: string; skill: number; salary: number; maxAssessments: number }> ?? EMPTY_PSY
+  );
   const hirePsychologist = useGameStore((s) => s.hirePsychologist);
 
   // 아동(턴 33+), 영유아(턴 63+)만 가능
