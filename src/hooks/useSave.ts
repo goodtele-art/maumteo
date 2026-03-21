@@ -67,10 +67,17 @@ export function useSave() {
         facilities: data.facilities,
         counselors: data.counselors,
         turnLog: data.turnLog,
-        // Stage 2-3 복원 (v1 세이브는 기본값)
+        // Stage 2-3 복원 (v1 세이브는 기본값, 누락 필드 보정)
         activeStage: data.activeStage ?? "adult",
-        childStage: data.childStage ?? null,
-        infantStage: data.infantStage ?? null,
+        childStage: data.childStage ? {
+          ...data.childStage,
+          psychologists: data.childStage.psychologists ?? {},
+          viceDirector: data.childStage.viceDirector ?? null,
+        } : null,
+        infantStage: data.infantStage ? {
+          ...data.infantStage,
+          psychologists: data.infantStage.psychologists ?? {},
+        } : null,
         viceDirector: data.viceDirector ?? null,
       });
 
