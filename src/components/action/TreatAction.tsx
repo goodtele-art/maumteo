@@ -166,7 +166,7 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
   // ── Step 1: 상담사 선택 ──
   if (step === "counselor") {
     return (
-      <Modal open={open} onClose={handleClose} title="치료받을 상담사를 선택해주세요">
+      <Modal open={open} onClose={handleClose} title="치료받을 상담사를 선택해주세요" bottomSheet>
         <div className="mb-3 p-2 rounded bg-surface-card/50 text-sm">
           <span className="font-medium">{patient.name}</span>{" "}
           <span className="text-xs text-theme-tertiary">
@@ -210,11 +210,11 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
   // ── Step 2: 치료시설 선택 ──
   if (step === "facility") {
     return (
-      <Modal open={open} onClose={handleClose} title="치료실을 선택해주세요">
+      <Modal open={open} onClose={handleClose} title="치료실을 선택해주세요" bottomSheet>
         <div className="mb-3 p-2 rounded bg-surface-card/50 text-sm">
           <span className="font-medium">{patient.name}</span>
           {selectedCounselor && (
-            <span className="text-theme-tertiary"> → {selectedCounselor.name} 상담사</span>
+            <span className="text-theme-secondary font-medium"> → {selectedCounselor.name} 상담사</span>
           )}
         </div>
 
@@ -272,7 +272,7 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
     );
 
     return (
-      <Modal open={open} onClose={handleClose} title="같이 치료받을 내담자를 선택해주세요">
+      <Modal open={open} onClose={handleClose} title="같이 치료받을 내담자를 선택해주세요" bottomSheet>
         <div className="mb-3 p-2 rounded bg-surface-card/50 text-sm">
           <span className="text-theme-tertiary">주 내담자:</span>{" "}
           <span className="font-medium">{patient.name}</span>{" "}
@@ -340,6 +340,12 @@ export default function TreatAction({ open, onClose, preselectedPatientId, onTre
   return null;
 }
 
+function getStarRating(mult: number): string {
+  if (mult >= 1.4) return "★★★";
+  if (mult >= 1.15) return "★★";
+  return "★";
+}
+
 function CounselorOption({
   counselor,
   issue,
@@ -353,6 +359,8 @@ function CounselorOption({
   onSelect: () => void;
   stage: string;
 }) {
+  const displayMode = useGameStore((s) => s.displayMode);
+  const isBeginner = displayMode === "beginner";
   const mult = getStageMatchMultiplier(stage, counselor.specialty, issue);
   const match = getMatchLabel(mult);
   const specialtyLabel = getStageSpecialtyLabel(stage, counselor.specialty);
@@ -370,14 +378,18 @@ function CounselorOption({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{counselor.name}</span>
-          <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${match.color}`}>{match.text}</span>
-          <span className="text-xs text-theme-secondary">x{mult.toFixed(2)}</span>
+          <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${match.color}`}>
+            {isBeginner ? getStarRating(mult) : match.text}
+          </span>
+          {!isBeginner && <span className="text-xs text-theme-secondary">x{mult.toFixed(2)}</span>}
         </div>
-        <div className="text-xs text-sky-400 mt-0.5">{specialtyLabel} · 실력 {counselor.skill}</div>
+        <div className="text-xs text-sky-400 mt-0.5">{specialtyLabel}{!isBeginner && ` · 실력 ${counselor.skill}`}</div>
       </div>
-      <div className="text-xs text-theme-secondary shrink-0">
-        상담 {counselor.treatmentCount ?? 0}회
-      </div>
+      {!isBeginner && (
+        <div className="text-xs text-theme-secondary shrink-0">
+          상담 {counselor.treatmentCount ?? 0}회
+        </div>
+      )}
     </button>
   );
 }

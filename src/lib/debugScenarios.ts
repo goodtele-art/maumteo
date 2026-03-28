@@ -5,6 +5,7 @@
 import { useGameStore } from "@/store/gameStore.ts";
 import { generatePatient } from "@/lib/engine/patient.ts";
 import { generateChildPatient } from "@/lib/engine/childPatient.ts";
+import { generateInfantPatient } from "@/lib/engine/infantPatient.ts";
 
 /** URL에서 debug 파라미터 읽기 */
 export function getDebugTurn(): number | null {
@@ -12,7 +13,7 @@ export function getDebugTurn(): number | null {
   const val = params.get("debug");
   if (!val) return null;
   const turn = parseInt(val, 10);
-  if (turn === 30 || turn === 60) return turn;
+  if (turn === 30 || turn === 40 || turn === 60 || turn === 70 || turn === 90 || turn === 100) return turn;
   return null;
 }
 
@@ -127,6 +128,58 @@ function initTurn60() {
   useGameStore.setState({ infantStage: null, activeStage: "adult", viceDirector: null });
 }
 
+/** 턴 90 시나리오: 3센터 운영 + 엔딩 S 직전 */
+function initTurn90() {
+  // 먼저 턴 60 시나리오를 베이스로 활용
+  initTurn60();
+
+  const s = useGameStore.getState();
+
+  // 턴 90으로 변경, 자원 풍부하게
+  s.setResources({ gold: 12000, reputation: 85, ap: 12, maxAp: 12 });
+  s.setTurnState({ currentTurn: 90, turnLog: [] });
+
+  // ── 영유아센터 ──
+  s.initInfantStage();
+
+  const infantState = useGameStore.getState().infantStage;
+  if (infantState) {
+    const infantCounselors = {
+      ic_1: { id: "ic_1", name: "윤발달", specialty: "developmental" as const, skill: 5, salary: 50, assignedPatientId: null, treatmentCount: 20, onLeave: false },
+      ic_2: { id: "ic_2", name: "한애착", specialty: "attachment_therapy" as const, skill: 4, salary: 40, assignedPatientId: null, treatmentCount: 15, onLeave: false },
+      ic_3: { id: "ic_3", name: "서감각", specialty: "sensory_integration" as const, skill: 5, salary: 55, assignedPatientId: null, treatmentCount: 18, onLeave: false },
+    };
+
+    const infantFacilities = {
+      if_1: { id: "if_1", type: "infant_play" as const, slotIndex: 0, level: 2, buildCost: 100, upkeepPerTurn: 8, emReduction: 9 },
+      if_2: { id: "if_2", type: "sensory_room" as const, slotIndex: 1, level: 2, buildCost: 180, upkeepPerTurn: 15, emReduction: 12 },
+      if_3: { id: "if_3", type: "parent_coaching" as const, slotIndex: 2, level: 1, buildCost: 120, upkeepPerTurn: 10, emReduction: 5 },
+    };
+
+    const infantPatients: Record<string, ReturnType<typeof generateInfantPatient>> = {};
+    for (let i = 0; i < 4; i++) {
+      const p = generateInfantPatient(90, i + 200);
+      infantPatients[p.id] = p;
+    }
+
+    useGameStore.setState({
+      infantStage: {
+        ...infantState,
+        ap: 8,
+        maxAp: 8,
+        counselors: infantCounselors,
+        facilities: infantFacilities,
+        patients: infantPatients,
+        psychologists: {},
+        director: null,
+        voucherReferral: null,
+        parentStresses: [],
+      },
+      activeStage: "adult",
+    });
+  }
+}
+
 /** 디버그 시나리오 적용 */
 export function applyDebugScenario(turn: number): boolean {
   // 기존 세이브 클리어 (디버그 시나리오는 항상 클린 스타트)
@@ -136,8 +189,30 @@ export function applyDebugScenario(turn: number): boolean {
     initTurn30();
     return true;
   }
+  if (turn === 40) {
+    // 100턴 체계: 40턴 = Stage 1 종료 직전 (기존 30턴 시나리오 + 턴 번호 조정)
+    initTurn30();
+    useGameStore.getState().setTurnState({ currentTurn: 40, turnLog: [] });
+    return true;
+  }
   if (turn === 60) {
     initTurn60();
+    return true;
+  }
+  if (turn === 70) {
+    // 100턴 체계: 70턴 = 엔딩 A 직전 (기존 60턴 시나리오 + 턴 번호 조정)
+    initTurn60();
+    useGameStore.getState().setTurnState({ currentTurn: 70, turnLog: [] });
+    return true;
+  }
+  if (turn === 90) {
+    initTurn90();
+    return true;
+  }
+  if (turn === 100) {
+    // 100턴 체계: 엔딩 S 직전 (기존 90턴 시나리오 + 턴 번호 조정)
+    initTurn90();
+    useGameStore.getState().setTurnState({ currentTurn: 100, turnLog: [] });
     return true;
   }
   return false;

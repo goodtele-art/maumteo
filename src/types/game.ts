@@ -72,6 +72,9 @@ export interface GameState {
 
 import type { StageId, ChildStageState, InfantStageState } from "./stage.ts";
 import type { ViceDirector } from "./staff/index.ts";
+import type { LifetimeStats } from "@/store/slices/lifetimeStatsSlice.ts";
+import type { ActionStats } from "@/store/slices/turnSlice.ts";
+import type { EventChoiceRecord } from "@/store/slices/eventSlice.ts";
 
 export interface SaveData {
   version: 1 | 2;
@@ -90,4 +93,9 @@ export interface SaveData {
   childStage?: ChildStageState | null;
   infantStage?: InfantStageState | null;
   viceDirector?: ViceDirector | null; // 성인센터 부센터장
+  specialLetters?: Array<{id: string; issue: string; patientName: string; letter: string; turn: number}>;
+  // DNA 리포트 통계
+  lifetimeStats?: LifetimeStats;
+  actionStats?: ActionStats;
+  eventChoiceHistory?: EventChoiceRecord[];
 }

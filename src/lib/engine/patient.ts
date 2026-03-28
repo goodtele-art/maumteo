@@ -1,6 +1,7 @@
 import type { Patient, DominantIssue, FloorId } from "@/types/index.ts";
 import { getFloorForEM } from "./em.ts";
 import { ISSUE_CONFIG } from "@/lib/constants.ts";
+import { getBackstory, getStoryLevel, getRecoveryStory } from "@/lib/stories.ts";
 
 // ── 이름 생성 ──
 const SURNAMES = [
@@ -128,17 +129,24 @@ function getAvailableIssues(turn: number): DominantIssue[] {
     .map(([id]) => id);
 }
 
-export function generatePatient(turn: number, idSeed: number): Patient {
-  const available = getAvailableIssues(turn);
-  const issue = available[idSeed % available.length]!;
+export function generatePatient(turn: number, idSeed: number, forceIssue?: DominantIssue): Patient {
+  const issue = forceIssue ?? (() => {
+    const available = getAvailableIssues(turn);
+    return available[idSeed % available.length]!;
+  })();
   const config = ISSUE_CONFIG[issue];
 
   const nameSeed = turn * 97 + idSeed * 13;
   const name = generateName(nameSeed);
-  const backstories = BACKSTORIES[issue];
-  const backstory = backstories[idSeed % backstories.length]!;
   const em = config.emStartMin +
     Math.floor(Math.random() * (config.emStartMax - config.emStartMin + 1));
+
+  // 새 스토리 시스템 우선, 데이터 미생성 시 기존 BACKSTORIES 폴백
+  let backstory = getBackstory(issue, getStoryLevel(em), idSeed);
+  if (!backstory) {
+    const fallback = BACKSTORIES[issue];
+    backstory = fallback[idSeed % fallback.length]!;
+  }
 
   return {
     id: `p_${turn}_${idSeed}`,
@@ -158,6 +166,12 @@ export function checkDischarge(patient: Patient): boolean {
 }
 
 export function getDischargeMessage(patient: Patient): string {
+  // backstory 길이로 level 추정 (종결 시 EM이 이미 낮아 getStoryLevel 부정확)
+  const level = patient.backstory.length >= 80 ? "level3"
+    : patient.backstory.length >= 40 ? "level2" : "level1";
+  const recovery = getRecoveryStory(patient.dominantIssue, level, patient.treatmentCount);
+  if (recovery) return recovery;
+
   const messages = DISCHARGE_MESSAGES[patient.dominantIssue];
   const idx = Math.abs(patient.id.length) % messages.length;
   return messages[idx]!;

@@ -3,8 +3,14 @@ import type { GameStore } from "../gameStore.ts";
 import type { PendingEvent, EventChoice } from "@/types/index.ts";
 import { clampEM, getFloorForEM } from "@/lib/engine/em.ts";
 
+export interface EventChoiceRecord {
+  eventId: string;
+  choiceIndex: number;
+}
+
 export interface EventSlice {
   pendingEvent: PendingEvent | null;
+  eventChoiceHistory: EventChoiceRecord[];
   setPendingEvent: (event: PendingEvent | null) => void;
   resolveEvent: (choiceIndex: number) => void;
 }
@@ -16,6 +22,7 @@ export const createEventSlice: StateCreator<
   EventSlice
 > = (set, get) => ({
   pendingEvent: null,
+  eventChoiceHistory: [],
 
   setPendingEvent: (event) => set({ pendingEvent: event }),
 
@@ -124,13 +131,17 @@ export const createEventSlice: StateCreator<
       }
     }
 
-    set({
+    set((s) => ({
       gold,
       reputation,
       ap,
       patients,
       counselors,
       pendingEvent: null,
-    });
+      eventChoiceHistory: [
+        ...s.eventChoiceHistory,
+        { eventId: pending.event.id, choiceIndex },
+      ],
+    }));
   },
 });

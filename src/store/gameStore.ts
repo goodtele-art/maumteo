@@ -10,6 +10,7 @@ import { createAchievementSlice } from "./slices/achievementSlice.ts";
 import { createStageSlice } from "./slices/stageSlice.ts";
 import { createStaffSlice } from "./slices/staffSlice.ts";
 import { createReferralSlice } from "./slices/referralSlice.ts";
+import { createLifetimeStatsSlice } from "./slices/lifetimeStatsSlice.ts";
 import type { ResourceSlice } from "./slices/resourceSlice.ts";
 import type { PatientSlice } from "./slices/patientSlice.ts";
 import type { FacilitySlice } from "./slices/facilitySlice.ts";
@@ -21,6 +22,7 @@ import type { AchievementSlice } from "./slices/achievementSlice.ts";
 import type { StageSlice } from "./slices/stageSlice.ts";
 import type { StaffSlice } from "./slices/staffSlice.ts";
 import type { ReferralSlice } from "./slices/referralSlice.ts";
+import type { LifetimeStatsSlice } from "./slices/lifetimeStatsSlice.ts";
 
 export type GameStore = ResourceSlice &
   PatientSlice &
@@ -32,7 +34,8 @@ export type GameStore = ResourceSlice &
   AchievementSlice &
   StageSlice &
   StaffSlice &
-  ReferralSlice;
+  ReferralSlice &
+  LifetimeStatsSlice;
 
 export const useGameStore = create<GameStore>()((...a) => ({
   ...createResourceSlice(...a),
@@ -46,4 +49,5 @@ export const useGameStore = create<GameStore>()((...a) => ({
   ...createStageSlice(...a),
   ...createStaffSlice(...a),
   ...createReferralSlice(...a),
+  ...createLifetimeStatsSlice(...a),
 }));

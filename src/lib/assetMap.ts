@@ -140,7 +140,7 @@ export function getFloorBackground(floorId: AnyFloorId): string {
 // ── 센터 외관 (평판 등급별) ──
 
 export function getBuildingAsset(grade: "F" | "D" | "C" | "B" | "A" | "S"): string {
-  return `${BASE}assets/building/center_${grade.toLowerCase()}.webp`;
+  return `${BASE}assets/building/${grade.toLowerCase()}.webp`;
 }
 
 // ── NPC 에셋 ──

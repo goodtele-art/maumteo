@@ -3,11 +3,11 @@ import type { CounselorSpecialty } from "@/types/counselor.ts";
 
 // ── 층 구성 ──
 export const FLOORS: FloorConfig[] = [
-  { id: "garden",     label: "옥상하늘정원", icon: "♥", color: "floor-garden",     emRange: [0, 15],   unlockTurn: 8 },
-  { id: "insight",    label: "심리상담센터", icon: "★", color: "floor-insight",    emRange: [16, 35],  unlockTurn: 8 },
-  { id: "counseling", label: "심리치료센터", icon: "●", color: "floor-counseling", emRange: [36, 60],  unlockTurn: 1 },
-  { id: "diagnostic", label: "집중치료센터", icon: "◆", color: "floor-diagnostic", emRange: [61, 80],  unlockTurn: 3 },
-  { id: "basement",   label: "거주치료센터", icon: "▼", color: "floor-basement",   emRange: [81, 100], unlockTurn: 5 },
+  { id: "garden",     label: "옥상하늘정원", icon: "♥", color: "floor-garden",     emRange: [0, 15],   unlockTurn: 18 },
+  { id: "insight",    label: "심리상담센터", icon: "★", color: "floor-insight",    emRange: [16, 35],  unlockTurn: 18 },
+  { id: "counseling", label: "심리치료센터", icon: "●", color: "floor-counseling", emRange: [36, 60],  unlockTurn: 3 },  // 튜토리얼 3턴부터 사이드바 표시
+  { id: "diagnostic", label: "집중치료센터", icon: "◆", color: "floor-diagnostic", emRange: [61, 80],  unlockTurn: 13 },
+  { id: "basement",   label: "거주치료센터", icon: "▼", color: "floor-basement",   emRange: [81, 100], unlockTurn: 15 },
 ];
 
 // ── 기본 수치 ──
@@ -83,7 +83,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 1.3,
     relapseChance: 0,
     emStartMin: 40, emStartMax: 70,
-    unlockTurn: 1,
+    unlockTurn: 3, // 튜토리얼 3턴에 첫 등장
   },
   anxiety: {
     label: "불안",
@@ -92,7 +92,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 1.0,
     relapseChance: 0,
     emStartMin: 45, emStartMax: 75,
-    unlockTurn: 1,
+    unlockTurn: 1, // 튜토리얼 1턴에 강제 생성
   },
   relationship: {
     label: "관계",
@@ -101,7 +101,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 0.8,
     relapseChance: 0,
     emStartMin: 40, emStartMax: 65,
-    unlockTurn: 3,
+    unlockTurn: 5, // 튜토리얼 5턴에 등장 (고용 버튼과 함께)
   },
   obsession: {
     label: "강박",
@@ -110,7 +110,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 1.0,
     relapseChance: 0.15,
     emStartMin: 50, emStartMax: 75,
-    unlockTurn: 3,
+    unlockTurn: 7, // 튜토리얼 7턴
   },
   trauma: {
     label: "트라우마",
@@ -119,7 +119,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 1.2,
     relapseChance: 0,
     emStartMin: 65, emStartMax: 90,
-    unlockTurn: 5,
+    unlockTurn: 15,
   },
   addiction: {
     label: "중독",
@@ -128,7 +128,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 1.1,
     relapseChance: 0.2,
     emStartMin: 50, emStartMax: 80,
-    unlockTurn: 5,
+    unlockTurn: 15,
   },
   personality: {
     label: "정서조절",
@@ -137,7 +137,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 1.5,
     relapseChance: 0.1,
     emStartMin: 55, emStartMax: 85,
-    unlockTurn: 7,
+    unlockTurn: 17,
   },
   psychosis: {
     label: "정신증",
@@ -146,7 +146,7 @@ export const ISSUE_CONFIG: Record<DominantIssue, IssueConfig> = {
     rapportDifficulty: 1.4,
     relapseChance: 0.1,
     emStartMin: 75, emStartMax: 95,
-    unlockTurn: 10,
+    unlockTurn: 20,
   },
 };
 
@@ -233,14 +233,14 @@ export interface FacilityTemplate {
 export const FACILITY_TEMPLATES: Record<FacilityType, FacilityTemplate> = {
   individual_room: {
     label: "개인상담실",
-    description: "기본 상담 공간. 안정적인 EM 감소.",
+    description: "기본 상담 공간. EM 감소(상당 수준).",
     buildCost: 100,
     upkeepPerTurn: 10,
     emReduction: 8,
     effect: "none",
     synergySpecialties: ["cbt", "psychodynamic"],
     bonusIssues: [],
-    unlockTurn: 1,
+    unlockTurn: 4, // 튜토리얼 4턴 (건설 버튼 해금)
   },
   group_room: {
     label: "집단상담실",
@@ -251,7 +251,7 @@ export const FACILITY_TEMPLATES: Record<FacilityType, FacilityTemplate> = {
     effect: "group_treat",
     synergySpecialties: ["interpersonal", "dbt"],
     bonusIssues: ["relationship", "depression"],
-    unlockTurn: 3,
+    unlockTurn: 13,
   },
   exposure_lab: {
     label: "노출치료실",
@@ -262,7 +262,7 @@ export const FACILITY_TEMPLATES: Record<FacilityType, FacilityTemplate> = {
     effect: "issue_bonus",
     synergySpecialties: ["cbt", "trauma_focused"],
     bonusIssues: ["anxiety", "obsession", "trauma"],
-    unlockTurn: 3,
+    unlockTurn: 13,
   },
   mindfulness_room: {
     label: "마음챙김실",
@@ -273,7 +273,7 @@ export const FACILITY_TEMPLATES: Record<FacilityType, FacilityTemplate> = {
     effect: "boost_encourage",
     synergySpecialties: ["dbt"],
     bonusIssues: ["personality", "addiction"],
-    unlockTurn: 5,
+    unlockTurn: 15,
   },
   family_room: {
     label: "가족상담실",
@@ -284,7 +284,7 @@ export const FACILITY_TEMPLATES: Record<FacilityType, FacilityTemplate> = {
     effect: "issue_bonus",
     synergySpecialties: ["family_systemic", "interpersonal"],
     bonusIssues: ["psychosis", "relationship"],
-    unlockTurn: 7,
+    unlockTurn: 17,
   },
   activity_room: {
     label: "활동치료실",
@@ -295,7 +295,7 @@ export const FACILITY_TEMPLATES: Record<FacilityType, FacilityTemplate> = {
     effect: "remove_mismatch_penalty",
     synergySpecialties: [],
     bonusIssues: [],
-    unlockTurn: 5,
+    unlockTurn: 15,
   },
 };
 

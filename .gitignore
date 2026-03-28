@@ -23,3 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 .claude/
+
+# Business plan HTML files (not for deployment)
+business-plan-*.html
+proposal-content-update.html
+improvement-changelog.html
+business-plan-review.html
+art-style-guide-generator.html
+

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마음터 에셋 체크리스트 (265개)</title>
+<style>
+  :root {
+    --bg: #0f172a; --card: #1e293b; --card-hover: #334155;
+    --text: #f1f5f9; --text2: #94a3b8; --text3: #64748b;
+    --teal: #2dd4bf; --amber: #fbbf24; --rose: #fb7185;
+    --violet: #a78bfa; --sky: #38bdf8; --green: #4ade80;
+    --pink: #f472b6; --orange: #fb923c; --cyan: #22d3ee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+  h1 { text-align: center; font-size: 1.6rem; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: var(--text2); font-size: 0.9rem; margin-bottom: 24px; }
+
+  /* Summary bar */
+  .summary { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+  .summary-card { background: var(--card); border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 120px; }
+  .summary-card .num { font-size: 1.8rem; font-weight: 800; }
+  .summary-card .label { font-size: 0.75rem; color: var(--text2); }
+  .sc-img .num { color: var(--teal); }
+  .sc-aud .num { color: var(--amber); }
+  .sc-total .num { color: var(--rose); }
+
+  /* Filter */
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+  .filter-btn { background: var(--card); border: 1px solid transparent; color: var(--text2); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s; }
+  .filter-btn:hover { background: var(--card-hover); color: var(--text); }
+  .filter-btn.active { background: var(--teal); color: #0f172a; font-weight: 600; border-color: var(--teal); }
+
+  /* Spec bar */
+  .spec-bar { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; padding: 12px; background: var(--card); border-radius: 10px; }
+  .spec-item { font-size: 0.75rem; color: var(--text3); }
+  .spec-item strong { color: var(--text2); }
+
+  /* Category */
+  .category { margin-bottom: 24px; border-radius: 12px; overflow: hidden; background: var(--card); }
+  .category-header { padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+  .category-header:hover { background: var(--card-hover); }
+  .cat-title { font-weight: 700; font-size: 0.95rem; }
+  .cat-meta { display: flex; gap: 12px; align-items: center; }
+  .cat-count { background: var(--teal); color: #0f172a; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .cat-count.audio { background: var(--amber); }
+  .cat-path { font-size: 0.7rem; color: var(--text3); font-family: monospace; }
+  .cat-size { font-size: 0.7rem; color: var(--text3); }
+  .arrow { transition: transform 0.2s; font-size: 0.8rem; color: var(--text3); }
+  .category.open .arrow { transform: rotate(90deg); }
+
+  /* Items table */
+  .items { display: none; padding: 0 18px 14px; }
+  .category.open .items { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  th { text-align: left; color: var(--text3); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid #334155; font-size: 0.7rem; text-transform: uppercase; }
+  td { padding: 5px 8px; border-bottom: 1px solid #1e293b; vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .fname { font-family: monospace; color: var(--sky); font-size: 0.75rem; }
+  .fdesc { color: var(--text2); }
+  .fcheck { width: 24px; text-align: center; }
+  .fcheck input { accent-color: var(--teal); width: 15px; height: 15px; cursor: pointer; }
+  .sub-group { color: var(--violet); font-weight: 600; padding: 8px 8px 4px; font-size: 0.78rem; }
+  .sub-group td { border-bottom: none; }
+
+  /* Prompt */
+  .prompt-row td { padding: 0 8px 8px; border-bottom: 1px solid #1e293b; }
+  .prompt-box { display: flex; gap: 6px; align-items: flex-start; background: #0f172a; border-radius: 6px; padding: 6px 10px; margin-top: 2px; }
+  .prompt-text { flex: 1; font-size: 0.7rem; color: var(--text3); font-family: monospace; word-break: break-all; line-height: 1.4; max-height: 60px; overflow: auto; }
+  .copy-btn { flex-shrink: 0; background: var(--card-hover); border: none; color: var(--text2); font-size: 0.65rem; padding: 3px 8px; border-radius: 4px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .copy-btn:hover { background: var(--teal); color: #0f172a; }
+  .copy-btn.copied { background: var(--green); color: #0f172a; }
+
+  /* Progress */
+  .progress-wrap { position: sticky; top: 0; z-index: 10; background: var(--bg); padding: 8px 0 12px; }
+  .progress-bar { height: 6px; background: var(--card); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--green)); border-radius: 3px; transition: width 0.3s; }
+  .progress-text { text-align: center; font-size: 0.75rem; color: var(--text3); margin-top: 4px; }
+
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+    .summary-card { min-width: 90px; padding: 8px 12px; }
+    .summary-card .num { font-size: 1.4rem; }
+    .cat-path { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🎨 마음터 에셋 체크리스트</h1>
+<p class="subtitle">MaumTeo Visual & Audio Asset Inventory — 총 265개</p>
+
+<div class="summary">
+  <div class="summary-card sc-img"><div class="num">237</div><div class="label">이미지</div></div>
+  <div class="summary-card sc-aud"><div class="num">28</div><div class="label">오디오</div></div>
+  <div class="summary-card sc-total"><div class="num">265</div><div class="label">전체</div></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+  <div class="progress-text" id="progText">0 / 265 완료 (0%)</div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-filter="all">전체</button>
+  <button class="filter-btn" data-filter="character">캐릭터</button>
+  <button class="filter-btn" data-filter="facility">시설</button>
+  <button class="filter-btn" data-filter="environment">환경/배경</button>
+  <button class="filter-btn" data-filter="ui">UI/뱃지</button>
+  <button class="filter-btn" data-filter="cutscene">컷씬/이벤트</button>
+  <button class="filter-btn" data-filter="audio">오디오</button>
+</div>
+
+<div class="spec-bar">
+  <div class="spec-item"><strong>캐릭터</strong> 256×256 (1:1)</div>
+  <div class="spec-item"><strong>시설</strong> 512×384 (4:3)</div>
+  <div class="spec-item"><strong>층배경</strong> 1920×1080 (16:9)</div>
+  <div class="spec-item"><strong>건물</strong> 800×600 (4:3)</div>
+  <div class="spec-item"><strong>컷씬</strong> 1280×720 (16:9)</div>
+  <div class="spec-item"><strong>뱃지</strong> 128×128 (1:1)</div>
+  <div class="spec-item"><strong>포맷</strong> WebP 80%</div>
+  <div class="spec-item"><strong>오디오</strong> MP3/OGG</div>
+</div>
+
+<div id="categories"></div>
+
+<script>
+const PROMPTS = {"anxiety_calm.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, relaxed posture sitting comfortably, gentle relieved smile, hands resting on lap, soft teal ambient lighting, psychological counseling center patient, feeling at peace after overcoming anxiety","anxiety_neutral.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, slightly tense posture, worried eyes looking sideways, one hand clutching chest area lightly, blue-gray ambient lighting, psychological counseling center patient, mild anxiety visible in expression","anxiety_distress.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, hunched shoulders, both hands pressed to chest, rapid breathing expression, furrowed brows, warm red ambient lighting, psychological counseling center patient, experiencing anxiety attack, still gentle kawaii style not scary","relationship_calm.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, warm open expression, relaxed body language facing forward, slight smile, soft teal ambient lighting, psychological counseling center patient, feeling connected and hopeful about relationships","relationship_neutral.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, head slightly lowered, lonely expression, arms crossed loosely, blue-gray ambient lighting, psychological counseling center patient, feeling isolated and distant","relationship_distress.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, turned slightly away, pained expression, one hand covering face, warm red ambient lighting, psychological counseling center patient, deep interpersonal pain and loneliness","obsession_calm.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, peaceful relaxed posture, hands resting naturally, calm clear eyes, soft teal ambient lighting, psychological counseling center patient, free from compulsive urges, at ease","obsession_neutral.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, slightly rigid posture, hands fidgeting, focused concentrated expression, blue-gray ambient lighting, psychological counseling center patient, managing obsessive thoughts","obsession_distress.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, tense rigid body, hands performing repetitive motion, strained expression with furrowed brows, warm red ambient lighting, psychological counseling center patient, struggling with compulsive behavior","trauma_calm.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, sitting in warm sunlight, gentle brave smile, open posture with hands on knees, soft teal and golden ambient lighting, psychological counseling center patient, healing from trauma, feeling safe","trauma_neutral.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, alert watchful eyes, slightly guarded posture, arms close to body, blue-gray ambient lighting, psychological counseling center patient, hypervigilant but managing","trauma_distress.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, curled up defensive posture, arms wrapped around self, wide frightened eyes, warm red ambient lighting, psychological counseling center patient, experiencing trauma response, still gentle art style","addiction_calm.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, determined confident posture, slight proud smile, fist gently clenched in resolve, soft teal ambient lighting, psychological counseling center patient, in recovery, feeling strong and hopeful","addiction_neutral.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, conflicted expression, one hand reaching forward then pulling back, unfocused gaze, blue-gray ambient lighting, psychological counseling center patient, experiencing craving but resisting","addiction_distress.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, disheveled appearance, confused swirling expression, head in hands, warm red ambient lighting, psychological counseling center patient, overwhelmed by urges, chaotic inner state","personality_calm.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, stable serene expression, balanced posture, hands in comfortable position, soft teal ambient lighting, psychological counseling center patient, emotionally regulated and grounded","personality_neutral.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, intense expression on the edge, slightly clenched jaw, restless energy in posture, blue-gray ambient lighting, psychological counseling center patient, emotions building up, trying to stay calm","personality_distress.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, emotional overwhelm expression, abstract warm-colored wave or flame motif around the figure as metaphor, tears forming, warm red ambient lighting, psychological counseling center patient, emotional storm","psychosis_calm.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, clear focused eyes, calm centered posture, gentle knowing smile, soft teal ambient lighting, psychological counseling center patient, lucid and present, reality feels solid","psychosis_neutral.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, slightly unfocused gaze, head tilted as if listening to something, mild confusion in expression, blue-gray ambient lighting with subtle swirl patterns, psychological counseling center patient, between reality and confusion","psychosis_distress.webp":"soft watercolor illustration, warm kawaii style, rounded features, gentle pastel palette, clean white background, adult person in their 20s-30s, distant detached expression, abstract geometric fragments floating around head as metaphor for fragmented perception, warm red and purple ambient lighting, psychological counseling center patient, disconnected from reality, depicted gently and respectfully","insight.webp":"wide panoramic illustration, 16:9 aspect ratio, psychological counseling center interior hallway, violet and purple color scheme, soft misty atmosphere with tiny star-like lights on ceiling, meditation corner visible, bookshelves with psychology texts, comfortable armchairs, warm wooden floors, dreamy introspective mood, gentle ambient purple lighting, watercolor style, no people, serene and contemplative space for inner exploration","diagnostic.webp":"wide panoramic illustration, 16:9 aspect ratio, professional treatment center interior, warm amber and golden color scheme, clinical but cozy environment, therapy room with comfortable furniture, professional assessment tools neatly arranged, warm pendant lighting, wooden accents, potted plants adding life, watercolor style, no people, atmosphere of focused care and expertise","depression_treat.webp":"soft watercolor illustration, kawaii style, adult patient sitting on therapy couch, talking with gentle expression, tissue box nearby, soft warm lighting, counseling session scene, hopeful atmosphere, clean white background","anxiety_treat.webp":"soft watercolor illustration, kawaii style, adult patient sitting with eyes closed practicing deep breathing, hands on belly for breathing exercise, relaxed shoulders, soft warm lighting, counseling session scene, calming atmosphere, clean white background","relationship_treat.webp":"soft watercolor illustration, kawaii style, adult patient in conversation gesture, open hand movements while speaking, engaged expression, soft warm lighting, counseling session scene, sharing feelings, clean white background","obsession_treat.webp":"soft watercolor illustration, kawaii style, adult patient doing exposure exercise, slightly nervous but brave expression, hands deliberately placed still on lap, soft warm lighting, counseling session, facing fears with courage, clean white background","trauma_treat.webp":"soft watercolor illustration, kawaii style, adult patient in safe comfortable posture, holding a grounding object, feet firmly on floor, calm focused expression, soft warm lighting, trauma-informed counseling session, feeling safe, clean white background","addiction_treat.webp":"soft watercolor illustration, kawaii style, adult patient writing in journal during session, thoughtful expression, pen in hand, recovery worksheet visible, soft warm lighting, motivational counseling session, clean white background","personality_treat.webp":"soft watercolor illustration, kawaii style, adult patient learning emotion regulation, looking at feelings chart or worksheet, concentrated but calm expression, soft warm lighting, DBT skills training session, clean white background","psychosis_treat.webp":"soft watercolor illustration, kawaii style, adult patient in supportive conversation, grounded posture, making eye contact, calm engaged expression, soft warm lighting, reality-oriented counseling session, stable and present, clean white background","cbt_treat.webp":"soft watercolor illustration, kawaii style, professional therapist standing at whiteboard with cognitive triangle diagram, pointer in hand, warm encouraging expression, professional but approachable attire, clean white background","psychodynamic_treat.webp":"soft watercolor illustration, kawaii style, professional therapist in deep listening posture, leaning slightly forward, hand on chin, empathetic expression, notepad on lap, classic therapy chair, clean white background","interpersonal_treat.webp":"soft watercolor illustration, kawaii style, professional therapist in open welcoming gesture, both hands visible in conversation, warm smile, interpersonal connection pose, professional attire, clean white background","dbt_treat.webp":"soft watercolor illustration, kawaii style, professional therapist holding emotion regulation worksheet, teaching mindfulness skills, calm centered expression, balanced posture, professional attire, clean white background","trauma_focused_treat.webp":"soft watercolor illustration, kawaii style, professional therapist in protective supportive posture, gentle reassuring expression, creating safe space gesture, warm professional attire, clean white background","family_systemic_treat.webp":"soft watercolor illustration, kawaii style, professional therapist with family therapy genogram chart, facilitating gesture with both hands, warm inclusive expression, professional attire, clean white background","cbt_burnout.webp":"soft watercolor illustration, kawaii style, tired therapist at desk, slumped shoulders, hand on forehead, exhausted but still caring expression, messy papers around, dim bluish lighting, professional attire slightly loosened, clean white background","psychodynamic_burnout.webp":"soft watercolor illustration, kawaii style, tired therapist leaning back in chair exhausted, glasses pushed up on forehead, heavy eyelids, empty coffee cup nearby, dim bluish lighting, clean white background","interpersonal_burnout.webp":"soft watercolor illustration, kawaii style, tired therapist sitting alone looking drained, usually warm expression now faded, hands limp on armrests, dim bluish lighting, clean white background","dbt_burnout.webp":"soft watercolor illustration, kawaii style, tired therapist holding head with both hands, overwhelmed expression, scattered worksheets around, dim bluish lighting, clean white background","trauma_focused_burnout.webp":"soft watercolor illustration, kawaii style, tired therapist staring blankly, emotional fatigue visible, compassion fatigue expression, sitting still with distant gaze, dim bluish lighting, clean white background","family_systemic_burnout.webp":"soft watercolor illustration, kawaii style, tired therapist at messy desk, rubbing tired eyes, family therapy charts scattered, empty tea cup, dim bluish lighting, clean white background","discharge_scene.webp":"wide watercolor illustration, 16:9 aspect ratio, joyful counseling center graduation scene, patient walking toward bright open door with golden sunlight streaming in, counselor waving goodbye warmly from behind, flower petals floating in the air, warm hopeful atmosphere, teal and gold color palette, text-free, emotional and uplifting moment of completing therapy","crisis_scene.webp":"wide watercolor illustration, 16:9 aspect ratio, urgent counseling center scene, abstract representation of emotional storm, swirling red and orange clouds above a small building, staff rushing with purpose, dramatic but not scary lighting, amber and red color palette, text-free, sense of urgency but professional response, still gentle kawaii-adjacent art style","guardian.webp":"soft watercolor illustration, kawaii style, middle-aged parent/guardian character, warm but worried expression, casual neat attire, holding a small bag, visiting counseling center to discuss family member, gentle caring appearance, clean white background","reporter.webp":"soft watercolor illustration, kawaii style, professional journalist character, holding notepad and pen, curious friendly expression, business casual attire, press badge visible, visiting counseling center for a story, clean white background","donor.webp":"soft watercolor illustration, kawaii style, generous benefactor character, warm philanthropic smile, smart business attire, holding an envelope or small gift, visiting counseling center to offer support, clean white background","inspector.webp":"soft watercolor illustration, kawaii style, government inspector character, professional clipboard in hand, neutral evaluating expression, formal suit, visiting counseling center for audit, approachable but official, clean white background","teacher.webp":"soft watercolor illustration, kawaii style, school teacher character, warm nurturing expression, glasses, holding children's book or folder, school-appropriate attire, consulting about student at counseling center, clean white background","wee_officer.webp":"soft watercolor illustration, kawaii style, Wee center counselor character, professional caring expression, lanyard with ID badge, holding assessment documents, youth counseling specialist appearance, clean white background","probation_officer.webp":"soft watercolor illustration, kawaii style, probation officer character, firm but compassionate expression, professional uniform-like attire, holding case files, working with at-risk youth, clean white background","gov_official.webp":"soft watercolor illustration, kawaii style, government official character, formal but friendly expression, smart suit, holding policy documents, visiting center for funding evaluation, clean white background","individual_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, a counseling room interior, level 2 upgrade, spacious room with comfortable sofa replacing basic chairs, warm wooden side table, soft floor lamp, calming artwork on wall, improved cozy atmosphere, professional psychology office, 4:3 aspect ratio, warm palette","individual_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, a premium counseling room interior, level 3 luxury upgrade, designer leather armchair and sofa, built-in bookshelf wall, ambient indirect lighting, indoor plant corner, sound-dampening panels, high-end therapy office, 4:3 aspect ratio, warm golden palette","group_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, a group therapy room interior, level 2 upgrade, circular cushion seating with comfortable floor cushions, whiteboard and flip chart, soft carpet, improved lighting, warm communal atmosphere, 4:3 aspect ratio, violet-toned palette","group_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, a premium group therapy room, level 3 luxury, modular comfortable chairs in circle, digital display board, acoustic panels on walls, multi-zone lighting, premium materials, professional group counseling space, 4:3 aspect ratio, violet-toned palette","exposure_lab_lv2.webp":"soft watercolor illustration, gentle pastel palette, an exposure therapy lab interior, level 2 upgrade, VR headset station added, graduated exposure tools, monitoring screens, controlled environment chamber, clinical but reassuring design, 4:3 aspect ratio, amber-toned palette","exposure_lab_lv3.webp":"soft watercolor illustration, gentle pastel palette, an advanced exposure therapy lab, level 3 high-tech, full VR immersion station, biofeedback monitors, multiple simulation rooms visible, cutting-edge therapeutic technology, professional and sophisticated, 4:3 aspect ratio, amber-toned palette","mindfulness_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, a mindfulness room interior, level 2 upgrade, meditation cushions with ambient LED color lamps, small water fountain, aromatherapy diffuser, sound bowls, improved zen atmosphere, 4:3 aspect ratio, teal-toned palette","mindfulness_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, a premium mindfulness sanctuary, level 3 luxury, natural skylight with real sunlight, indoor rock garden with flowing water feature, floor-to-ceiling nature mural, premium meditation space, 4:3 aspect ratio, teal and green palette","family_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, a family therapy room interior, level 2 upgrade, large comfortable sectional sofa, children's play corner added, family art supplies, warm homey atmosphere, two-zone design for adults and kids, 4:3 aspect ratio, pink-toned palette","family_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, a premium family therapy suite, level 3, observation room with one-way mirror, separate children's therapy wing, family interaction space, professional family therapy equipment, modern warm design, 4:3 aspect ratio, pink-toned palette","activity_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, an activity therapy room, level 2 upgrade, art supplies plus music instruments corner, exercise area with yoga mats, creative expression wall, multi-activity design, 4:3 aspect ratio, green-toned palette","activity_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, a comprehensive activity therapy center, level 3, full art studio section, music therapy corner with piano, movement therapy space with mirrors, pottery wheel, premium creative healing space, 4:3 aspect ratio, green-toned palette","play_room.webp":"soft watercolor illustration, gentle pastel palette, a child play therapy room, bright cheerful colors, toy shelves neatly organized, sand tray therapy table, dollhouse, art corner with crayons, soft carpet floor, warm inviting atmosphere for children age 7-12, 4:3 aspect ratio, yellow and warm palette","play_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded child play therapy room, expanded toy collection, puppet theater corner, sensory play station, improved lighting with colorful pendants, larger sand tray with figurines collection, 4:3 aspect ratio, yellow and warm palette","play_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, premium child play therapy suite, multiple themed play zones, professional puppet stage, digital interactive play wall, art therapy studio section, top-quality therapeutic toys, dream playroom for healing, 4:3 aspect ratio, yellow and warm palette","play_room_interior.webp":"watercolor illustration wide view of play therapy room interior, child sitting on floor surrounded by therapeutic toys, sand tray visible, puppets on shelf, warm afternoon light through window, inviting and safe, 4:3 aspect ratio","parent_room.webp":"soft watercolor illustration, gentle pastel palette, a parent consultation room, comfortable sofa and armchair, warm lamp lighting, tissue box and coffee table, family photos display concept, warm orange-toned cozy room, professional but homey, 4:3 aspect ratio","parent_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded parent consultation room, larger comfortable seating area, parenting resource bookshelf, calming artwork, improved sound insulation panels, better lighting, 4:3 aspect ratio, orange-toned palette","parent_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, premium parent consultation suite, video conferencing setup for remote parents, comprehensive parenting library, separate private meeting nook, beverage station, luxurious comfort, 4:3 aspect ratio, orange-toned palette","parent_room_interior.webp":"watercolor illustration wide view of parent consultation room, two adults sitting on comfortable sofa in deep conversation, warm lamplight, coffee cups on table, supportive atmosphere, 4:3 aspect ratio","group_activity.webp":"soft watercolor illustration, gentle pastel palette, social skills training room for children, circular mat seating, board games and social skills cards on shelves, cooperation activity posters, bright indigo-toned room, interactive whiteboard, 4:3 aspect ratio","group_activity_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded social skills room, role-play costume corner, video recording setup for social skills practice, expanded game collection, improved group activity space, 4:3 aspect ratio, indigo palette","group_activity_lv3.webp":"soft watercolor illustration, gentle pastel palette, premium social skills center, simulated real-world scenarios setup (mock store, school), advanced social interaction tools, observation gallery, professional group therapy space for children, 4:3 aspect ratio, indigo palette","group_activity_interior.webp":"watercolor illustration wide view of social skills room, children sitting in circle on colorful mats playing cooperative board game, facilitator guiding, cheerful atmosphere, 4:3 aspect ratio","exposure_child.webp":"soft watercolor illustration, gentle pastel palette, child-friendly exposure therapy room, graduated difficulty steps visualized on wall, comfort items basket, brave star reward chart, gentle clinical design with warm colors, child-safe equipment, 4:3 aspect ratio, amber palette","exposure_child_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded child exposure therapy room, tablet-based virtual exposure tools, expanded comfort corner with weighted blankets, child-sized relaxation station, improved step-by-step visual guides, 4:3 aspect ratio, amber palette","exposure_child_lv3.webp":"soft watercolor illustration, gentle pastel palette, advanced child exposure therapy suite, child-friendly VR system, multiple themed exposure chambers, comprehensive reward system display, biofeedback monitor with kid-friendly interface, 4:3 aspect ratio, amber palette","exposure_child_interior.webp":"watercolor illustration wide view of child exposure room, child bravely approaching feared stimulus with therapist support, step ladder metaphor on wall, warm encouraging atmosphere, 4:3 aspect ratio","nutrition_clinic.webp":"soft watercolor illustration, gentle pastel palette, nutrition therapy clinic for eating disorders, healthy food posters, meal planning table, gentle weighing corner with curtain for privacy, warm lime-green palette, supportive non-judgmental design, 4:3 aspect ratio","nutrition_clinic_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded nutrition clinic, cooking therapy corner, meal practice kitchenette, body-positive artwork, nutritional education display, improved private consultation area, 4:3 aspect ratio, lime-green palette","nutrition_clinic_lv3.webp":"soft watercolor illustration, gentle pastel palette, premium nutrition therapy center, full therapeutic kitchen, family meal practice dining room, garden therapy windowsill herbs, comprehensive recovery-focused environment, 4:3 aspect ratio, lime-green palette","nutrition_clinic_interior.webp":"watercolor illustration wide view of nutrition clinic, teen sitting at table with meal plan worksheet, healthy food display nearby, warm supportive atmosphere, no focus on weight or body, 4:3 aspect ratio","crisis_room.webp":"soft watercolor illustration, gentle pastel palette, crisis intervention room for youth, safety-padded soft walls in warm colors, calming sensory tools basket, safety plan poster, bean bag chairs, de-escalation space, warm red-toned but NOT scary, safe haven design, 4:3 aspect ratio","crisis_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded crisis room, improved sensory modulation tools, weighted blankets and compression items, calming light projector, direct phone line, enhanced safety features, 4:3 aspect ratio, warm red palette","crisis_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, advanced crisis intervention suite, multi-sensory regulation room, real-time monitoring system with gentle interface, separate cool-down zones, connection to emergency services panel, highest safety standards, 4:3 aspect ratio, warm red palette","crisis_room_interior.webp":"watercolor illustration wide view of crisis room, safe cozy space with soft lighting, sensory tools visible, calming projector on ceiling showing gentle waves, atmosphere of safety and containment, 4:3 aspect ratio","infant_play.webp":"soft watercolor illustration, gentle pastel palette, infant developmental play room, soft foam mat floor, baby-safe developmental toys, wall mirror at child height, mobile hanging from ceiling, pastel pink and warm palette, safe nurturing environment for ages 1-5, 4:3 aspect ratio","infant_play_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded infant play room, expanded developmental toy collection, cause-and-effect toys station, imitation play corner with child-sized kitchen, improved safety padding, 4:3 aspect ratio, soft pink palette","infant_play_lv3.webp":"soft watercolor illustration, gentle pastel palette, premium infant developmental play suite, multiple themed play zones, water play station, natural material sensory corner, garden-view window, highest quality developmental environment, 4:3 aspect ratio, soft pink palette","infant_play_interior.webp":"watercolor illustration wide view of infant play room, toddler exploring toys on soft mat, colorful mobiles overhead, warm sunlight, nurturing atmosphere, 4:3 aspect ratio","sensory_room.webp":"soft watercolor illustration, gentle pastel palette, sensory integration room, bubble tube column, tactile wall panels, suspended therapy swing, ball pit corner, soft colored LED lighting, purple-toned calming space, therapeutic sensory environment, 4:3 aspect ratio","sensory_room_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded sensory room, expanded swing collection including platform swing, fiber optic ceiling lights, vibrating cushion station, scent therapy corner, 4:3 aspect ratio, purple palette","sensory_room_lv3.webp":"soft watercolor illustration, gentle pastel palette, premium multisensory environment, interactive light-up floor, projection mapping walls, full Snoezelen room features, professional-grade sensory integration equipment, 4:3 aspect ratio, purple palette","sensory_room_interior.webp":"watercolor illustration wide view of sensory room, child on therapy swing with gentle lighting from bubble tubes, calm dreamy atmosphere, 4:3 aspect ratio","parent_coaching.webp":"soft watercolor illustration, gentle pastel palette, parent coaching room, one-way observation mirror, earpiece coaching setup, comfortable parent viewing area, child play space visible through mirror, professional coaching environment, orange-toned palette, 4:3 aspect ratio","parent_coaching_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded coaching room, live video feed system, split-screen coaching monitor, improved earpiece technology, resource library shelf, 4:3 aspect ratio, orange palette","parent_coaching_lv3.webp":"soft watercolor illustration, gentle pastel palette, advanced parent coaching suite, multi-camera observation system, real-time behavioral coding display, recording and playback station, comprehensive parent training center, 4:3 aspect ratio, orange palette","parent_coaching_interior.webp":"watercolor illustration wide view of coaching room, parent watching child play through one-way mirror while receiving guidance through earpiece, warm supportive atmosphere, 4:3 aspect ratio","language_lab.webp":"soft watercolor illustration, gentle pastel palette, speech and language therapy room, picture communication cards on wall, AAC device on table, picture books shelf, recording equipment, child-friendly acoustic design, cyan-toned palette, 4:3 aspect ratio","language_lab_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded language lab, interactive touchscreen word board, expanded AAC device collection, puppet theater for narrative therapy, sound-dampened recording booth, 4:3 aspect ratio, cyan palette","language_lab_lv3.webp":"soft watercolor illustration, gentle pastel palette, premium language therapy center, speech analysis software display, comprehensive AAC technology wall, immersive storytelling corner, professional speech pathology equipment, 4:3 aspect ratio, cyan palette","language_lab_interior.webp":"watercolor illustration wide view of language therapy room, therapist and child at table with picture cards, child pointing at communication board, warm engaging atmosphere, 4:3 aspect ratio","structured_teaching.webp":"soft watercolor illustration, gentle pastel palette, TEACCH structured teaching classroom, visual schedule on wall, individual work stations with dividers, labeled bins and task systems, clear spatial organization, blue-toned professional space, 4:3 aspect ratio","structured_teaching_lv2.webp":"soft watercolor illustration, gentle pastel palette, upgraded structured classroom, expanded individual work stations, digital visual schedule system, token economy reward display, improved visual supports, 4:3 aspect ratio, blue palette","structured_teaching_lv3.webp":"soft watercolor illustration, gentle pastel palette, advanced structured teaching center, multiple specialized zones, comprehensive visual support systems, data collection technology, professional ABA/TEACCH environment, 4:3 aspect ratio, blue palette","structured_teaching_interior.webp":"watercolor illustration wide view of structured classroom, child working at organized station following visual schedule, clear and predictable environment, calm focused atmosphere, 4:3 aspect ratio","individual_room_interior.webp":"watercolor illustration wide view of individual counseling room, two comfortable chairs facing each other, soft lamp between them, bookshelf in background, therapy in session atmosphere, warm inviting, 4:3 aspect ratio","group_room_interior.webp":"watercolor illustration wide view of group therapy room, circle of chairs with one facilitator position, whiteboard with notes, warm communal atmosphere, afternoon light, 4:3 aspect ratio","exposure_lab_interior.webp":"watercolor illustration wide view of exposure therapy lab, graduated exposure setup, monitoring station, controlled environment, clinical but supportive, 4:3 aspect ratio","mindfulness_room_interior.webp":"watercolor illustration wide view of mindfulness meditation room, meditation cushions in circle, small fountain, incense holder, natural light from skylight, peaceful zen atmosphere, 4:3 aspect ratio","family_room_interior.webp":"watercolor illustration wide view of family therapy room, large sectional sofa, children's play corner, family interaction space, warm homey but professional, 4:3 aspect ratio","activity_room_interior.webp":"watercolor illustration wide view of activity therapy room, art supplies station, music instruments corner, yoga mats area, creative expression space, colorful and energetic, 4:3 aspect ratio","child_garden.webp":"wide panoramic watercolor illustration, 16:9, sky playground rooftop space, bright blue sky with fluffy clouds, rainbow slide and climbing structure, colorful flower beds, children's garden with butterflies, warm golden sunlight, amber-yellow color scheme, joyful healing space for recovered children, no people","child_comfort.webp":"wide panoramic watercolor illustration, 16:9, cozy counseling room hallway for children, soft violet-lavender color scheme, comfortable reading nooks along walls, stuffed animals on shelves, fairy lights on ceiling, warm carpet floor, safe nurturing atmosphere, no people","child_care.webp":"wide panoramic watercolor illustration, 16:9, children's care center corridor, sky-blue color scheme, school-like but warmer atmosphere, colorful doors with different therapy room signs, children's artwork displayed on walls, bright natural lighting, no people","child_intensive.webp":"wide panoramic watercolor illustration, 16:9, intensive care unit for children, warm orange color scheme, professional but child-friendly, specialized therapy rooms visible, calming ocean murals on walls, structured environment, no people","child_shelter.webp":"wide panoramic watercolor illustration, 16:9, protective treatment center for children, soft red-coral color scheme, maximum safety design, padded corners, cozy protected spaces, night-light atmosphere with warm glowing lamps, feeling of safety and containment, no people","infant_bloom.webp":"wide panoramic watercolor illustration, 16:9, blooming playroom for toddlers, soft green pastel color scheme, flower motifs on walls, hanging colorful mobiles, soft foam mat floor, natural sunlight through large windows, gentle nursery plants, magical garden-like atmosphere, no people","infant_nurture.webp":"wide panoramic watercolor illustration, 16:9, warm nurturing care room for infants, soft rose-pink color scheme, rocking chairs, cozy cushion corners, gentle night-sky ceiling with stars, warm blankets draped over furniture, womb-like safe atmosphere, no people","infant_care.webp":"wide panoramic watercolor illustration, 16:9, developmental support center for toddlers, soft blue pastel color scheme, developmental assessment tools neatly arranged, educational play stations, height-appropriate furniture, organized and stimulating, no people","infant_cocoon.webp":"wide panoramic watercolor illustration, 16:9, safe cocoon sanctuary for infants, soft purple-lavender color scheme, nest-like enclosed spaces, weighted blankets visible, gentle heartbeat-rhythm lighting, maximum comfort and protection, womb-safe atmosphere, no people","center_f.webp":"soft watercolor illustration, gentle pastel palette, small run-down counseling office building, cracked walls, faded sign barely readable, weeds growing around entrance, single dim window light, rainy gloomy atmosphere, old residential building converted to office, humble beginnings, 4:3 aspect ratio","center_d.webp":"soft watercolor illustration, gentle pastel palette, clean small commercial building used as counseling center, basic signage, tidy entrance with one potted plant, simple but maintained exterior, partly cloudy sky, neighborhood therapy office, 4:3 aspect ratio","center_c.webp":"soft watercolor illustration, gentle pastel palette, two-story counseling center building, bright clean exterior, visible garden area with bench, professional signage, flowers along pathway, blue sky with white clouds, established community center, 4:3 aspect ratio","center_b.webp":"soft watercolor illustration, gentle pastel palette, modern three-story healing center, LED illuminated sign, decorative fountain at entrance, landscaped gardens, glass entrance lobby visible, contemporary architecture, sunset golden hour lighting, prestigious therapy center, 4:3 aspect ratio","center_a.webp":"soft watercolor illustration, gentle pastel palette, magnificent lighthouse-themed healing center, four-story modern building with lighthouse tower element on roof, beacon light glowing warmly, beautiful rooftop garden visible, large welcoming entrance with glass canopy, golden hour lighting, established prestigious center called Light of Hearts, 4:3 aspect ratio","center_s.webp":"soft watercolor illustration, gentle pastel palette, magnificent lighthouse-inspired modern healing center, glowing beacon tower element, rooftop garden visible, three connected wings for different centers (adult, child, infant), glass and warm wood architecture, starry twilight sky, golden light emanating from windows, the ultimate integrated developmental healing center, 4:3 aspect ratio","badge_first_treat.webp":"circular badge icon, golden border, speech bubble with heart symbol in center, first counseling session achievement, warm colors, game achievement style, 1:1 square, clean transparent background","badge_first_discharge.webp":"circular badge icon, golden border, open door with sunlight rays, first patient discharge achievement, teal and gold colors, game achievement style, 1:1 square, clean transparent background","badge_facility_master.webp":"circular badge icon, silver border, wrench and building symbol, all facilities built achievement, blue and silver, game achievement style, 1:1 square, clean transparent background","badge_counselor_team.webp":"circular badge icon, golden border, three people silhouettes in circle, full counselor team achievement, purple and gold, game achievement style, 1:1 square, clean transparent background","badge_reputation_a.webp":"circular badge icon, golden border, lighthouse with shining beacon, A-rank reputation achievement, gold and teal, game achievement style, 1:1 square, clean transparent background","badge_100_treats.webp":"circular badge icon, golden border, number 100 with star, hundred treatments achievement, warm gold, game achievement style, 1:1 square, clean transparent background","badge_zero_crisis.webp":"shield badge icon, silver border, shield with checkmark, zero crisis record achievement, blue and silver, game achievement style, 1:1 square, clean transparent background","badge_all_issues.webp":"circular badge icon, rainbow border, eight-pointed star, all issue types treated achievement, rainbow colors, game achievement style, 1:1 square, clean transparent background","badge_economy_master.webp":"circular badge icon, golden border, coin stack with crown, financial mastery achievement, gold and amber, game achievement style, 1:1 square, clean transparent background","badge_lighthouse_guardian.webp":"shield badge icon, golden border, lighthouse on cliff with rainbow, ultimate guardian achievement, gold purple and teal, premium game achievement style, 1:1 square, clean transparent background","badge_first_child_discharge.webp":"circular badge icon, golden border, child figure with butterfly wings spreading, first child discharge, warm yellow and teal, game achievement style, 1:1 square, clean transparent background","badge_play_power.webp":"circular badge icon, silver border, toy blocks with sparkle, play therapy mastery, yellow and purple, game achievement style, 1:1 square, clean transparent background","badge_parent_partner.webp":"circular badge icon, golden border, parent and child hands holding together, parent partnership, green and gold, game achievement style, 1:1 square, clean transparent background","badge_school_expert.webp":"circular badge icon, silver border, school building with star, school consultation expert, blue and silver, game achievement style, 1:1 square, clean transparent background","badge_child_specialist.webp":"shield badge icon, golden border, child silhouette in protective circle, child specialist center, warm orange and gold, game achievement style, 1:1 square, clean transparent background","badge_crisis_guardian.webp":"shield badge icon, golden border, shield protecting a small figure, crisis guardian for youth, red and gold, game achievement style, 1:1 square, clean transparent background","badge_rehabilitation.webp":"circular badge icon, golden border, path leading to sunrise, rehabilitation success, orange and gold, game achievement style, 1:1 square, clean transparent background","badge_precise_diagnosis.webp":"circular badge icon, silver border, magnifying glass with brain symbol, precise psychological assessment, purple and silver, game achievement style, 1:1 square, clean transparent background","badge_first_milestone.webp":"circular badge icon, golden border, baby footprint with star, first developmental milestone, soft green and gold, game achievement style, 1:1 square, clean transparent background","badge_golden_time.webp":"shield badge icon, golden border, hourglass with golden sand and star, golden time guardian, gold and amber, game achievement style, 1:1 square, clean transparent background","badge_developmental_miracle.webp":"circular badge icon, rainbow border, seedling growing into tree, developmental miracle achievement, green rainbow, premium game achievement style, 1:1 square, clean transparent background","badge_parent_coach.webp":"circular badge icon, golden border, hands guiding smaller hands, parent coaching mastery, warm orange and gold, game achievement style, 1:1 square, clean transparent background","badge_integration_master.webp":"shield badge icon, rainbow border, three interconnected circles (representing 3 centers), integration master, rainbow with gold, premium game achievement style, 1:1 square, clean transparent background","badge_voucher_expert.webp":"circular badge icon, golden border, government voucher document with checkmark, voucher program expert, blue and gold, game achievement style, 1:1 square, clean transparent background","badge_stress_resolver.webp":"circular badge icon, silver border, storm cloud turning into sunshine, parent stress resolver, blue to yellow gradient, game achievement style, 1:1 square, clean transparent background","badge_no_dispute.webp":"shield badge icon, golden border, balanced scales with peace symbol, zero dispute center, gold and green, game achievement style, 1:1 square, clean transparent background","event_guardian_visit.webp":"soft watercolor illustration, gentle pastel palette, 16:9, parent/guardian visiting counseling center lobby, concerned expression, talking to receptionist, warm interior lighting, family support theme, gentle atmosphere","event_media_coverage.webp":"soft watercolor illustration, gentle pastel palette, 16:9, journalist with camera crew outside counseling center, center staff at entrance, media spotlight scene, mix of nervous and proud atmosphere, professional","event_counselor_burnout.webp":"soft watercolor illustration, gentle pastel palette, 16:9, therapist sitting alone in empty office at night, head in hands, dim desk lamp only light source, stack of case files, compassion fatigue moment, empathetic and respectful depiction","event_patient_conflict.webp":"soft watercolor illustration, gentle pastel palette, 16:9, two patients in group room with tense body language, therapist mediating between them, abstract tension lines in air, professional conflict resolution scene, not violent","event_donation.webp":"soft watercolor illustration, gentle pastel palette, 16:9, generous donor presenting oversized check or gift to smiling center director, staff clapping in background, lobby with banner, warm grateful celebration atmosphere","event_teacher_request.webp":"soft watercolor illustration, gentle pastel palette, 16:9, school teacher at counseling center meeting with therapist, concerned expression, student file on table, school-center collaboration scene, professional warm","event_parent_anxiety.webp":"soft watercolor illustration, gentle pastel palette, 16:9, worried parent in waiting room, fidgeting hands, looking at phone anxiously, therapist approaching with reassuring gesture, parent support moment","event_child_friendship.webp":"soft watercolor illustration, gentle pastel palette, 16:9, two children in center hallway discovering they enjoy same hobby, sharing stickers or drawing together, spontaneous friendship moment, bright cheerful","event_sns_criticism.webp":"soft watercolor illustration, gentle pastel palette, 16:9, staff member looking at phone screen with worried expression, abstract negative comment bubbles floating from screen, other staff offering support, online criticism scene","event_academic_invitation.webp":"soft watercolor illustration, gentle pastel palette, 16:9, therapist receiving formal invitation letter at desk, academic conference poster visible, proud excited expression, career growth moment","event_abuse_suspicion.webp":"soft watercolor illustration, gentle pastel palette, 16:9, therapist in deep contemplation at desk, child's drawing on table showing concerning content, phone nearby (for reporting), heavy moral responsibility moment, respectful serious tone, no explicit abuse depiction","event_gov_funding.webp":"soft watercolor illustration, gentle pastel palette, 16:9, government official presenting funding document to center director, handshake scene, official letterhead visible, professional partnership, positive support moment","event_parent_burnout.webp":"soft watercolor illustration, gentle pastel palette, 16:9, exhausted parent dozing in waiting room chair, baby bag on floor, therapist bringing warm tea, empathetic caregiver fatigue scene, tender support moment","event_dev_assessment.webp":"soft watercolor illustration, gentle pastel palette, 16:9, clinical psychologist conducting developmental assessment with toddler, colorful testing materials on table, parent observing from side, professional assessment scene","event_sibling_jealousy.webp":"soft watercolor illustration, gentle pastel palette, 16:9, older sibling standing in center hallway looking sad while parent carries younger sibling into therapy room, loneliness moment, tender family dynamics scene","event_milestone_celebration.webp":"soft watercolor illustration, gentle pastel palette, 16:9, center staff and parents celebrating a child's developmental milestone, small party with balloons, toddler clapping happily, joyful achievement celebration","event_waitlist_complaint.webp":"soft watercolor illustration, gentle pastel palette, 16:9, parent at reception desk expressing frustration about waiting list, receptionist showing apologetic gesture, queue of families in background, service demand scene","intro_page1.webp":"cinematic watercolor illustration, 16:9, bird's eye view of a small struggling counseling center in a busy city, people walking past with heavy shadows (representing emotional weight), one person stops and looks at the center's dim sign, dawn sky suggesting new beginning, establishing shot, Korean city atmosphere","intro_page2.webp":"cinematic watercolor illustration, 16:9, abstract metaphor of emotional mass (EM), figure carrying heavy dark sphere on shoulders representing psychological burden, same figure becoming lighter as sphere shrinks through therapy, gradient from dark red to bright teal, emotional weight concept visualization","intro_page3.webp":"cinematic watercolor illustration, 16:9, evidence-based therapy showcase, split panel showing CBT whiteboard, psychodynamic therapy couch, DBT skills worksheet, family therapy circle, each panel glowing with different color, professional healing methods visualization, scientific and warm","intro_page4.webp":"cinematic watercolor illustration, 16:9, counseling center growing from small office to magnificent lighthouse building, timeline progression from left to right, more patients being healed, more staff joining, ending with the center shining like a beacon, growth and hope journey, golden hour lighting","ending_a.webp":"cinematic watercolor illustration, 16:9, ending scene titled Friend of Children, group of diverse children and teenagers standing happily in front of the counseling center, some waving, some holding hands, therapists and parents in background smiling, cherry blossom petals falling, warm golden sunset, emotional triumphant atmosphere","ending_s.webp":"cinematic watercolor illustration, 16:9, ultimate ending scene titled Light of Integrated Healing, magnificent three-wing center building glowing like lighthouse at twilight, three colored beams (teal for adult, amber for child, pink for infant) converging into single bright light at top, crowds of healed people gathered in front, fireworks and flower petals, starry sky, emotional peak moment of the game","gameover_bankrupt.webp":"soft watercolor illustration, gentle pastel palette, 16:9, empty dark counseling room, chairs stacked, lights off, FOR LEASE sign on window, last staff member carrying box of belongings walking out, rainy gray atmosphere, melancholic but not hopeless, sense that one could try again","gameover_trust_lost.webp":"soft watercolor illustration, gentle pastel palette, 16:9, counseling center with patients walking away in a line toward the horizon, building still standing but empty, wilting plants at entrance, cloudy overcast sky, loss of trust atmosphere, bittersweet, center alone, melancholic but respectful","icon_gold.webp":"game UI icon, shiny golden coin with heart engraved in center, metallic shine, warm glow effect, pixel-art adjacent style, clean transparent background, 1:1 square, game currency icon","icon_ap.webp":"game UI icon, bright blue lightning bolt with sparkle effects, energetic action point symbol, electric glow, pixel-art adjacent style, clean transparent background, 1:1 square, game energy icon","icon_reputation.webp":"game UI icon, golden five-pointed star with laurel wreath around it, prestige and reputation symbol, warm golden glow, pixel-art adjacent style, clean transparent background, 1:1 square, game reputation icon","child_anxiety_calm.webp":"soft watercolor illustration, kawaii style, child age 8-12, calm relaxed expression, sitting comfortably with hands on lap, school uniform, slight brave smile, soft teal ambient lighting, clean white background, child counseling center patient, feeling safe and relieved","child_anxiety_neutral.webp":"soft watercolor illustration, kawaii style, child age 8-12, slightly nervous expression, clutching book bag strap, looking sideways with worried eyes, school uniform, blue-gray ambient lighting, clean white background, child counseling center patient, mild anxiety","child_anxiety_distress.webp":"soft watercolor illustration, kawaii style, child age 8-12, distressed expression, hands covering ears, curled up posture, tears forming, school uniform rumpled, warm red ambient lighting, clean white background, child counseling center patient, anxiety overwhelm, depicted gently","child_depression_calm.webp":"soft watercolor illustration, kawaii style, teenager age 14-17, gentle hopeful smile, sitting upright, casual hoodie, looking forward with clarity, soft teal ambient lighting, clean white background, teen counseling center patient, emerging from depression","child_depression_neutral.webp":"soft watercolor illustration, kawaii style, teenager age 14-17, head slightly lowered, hood partially up, earbuds hanging, dull tired expression, blue-gray ambient lighting, clean white background, teen counseling center patient, low mood","child_depression_distress.webp":"soft watercolor illustration, kawaii style, teenager age 14-17, deeply withdrawn, hood up covering most of face, knees drawn up, headphones as wall from world, warm red ambient lighting, clean white background, teen counseling center patient, severe depression, gentle respectful depiction","adhd_calm.webp":"soft watercolor illustration, kawaii style, energetic child age 7-10, sitting still with proud concentration face, small fidget toy in hand, bright alert eyes focused forward, casual colorful clothes, soft teal ambient lighting, clean white background, child counseling patient, managing attention well","adhd_neutral.webp":"soft watercolor illustration, kawaii style, energetic child age 7-10, looking in three different directions simultaneously, fidgety hands, bouncing in seat, scattered items around, blue-gray ambient lighting, clean white background, child counseling patient, attention scattered","adhd_distress.webp":"soft watercolor illustration, kawaii style, energetic child age 7-10, overwhelmed expression, too many stimuli indicated by abstract swirling elements, covering head, frustrated tears, warm red ambient lighting, clean white background, child counseling patient, sensory and attention overload","behavior_regulation_calm.webp":"soft watercolor illustration, kawaii style, child age 9-13, calm composed expression, arms relaxed at sides, standing tall with self-control, casual clothes, soft teal ambient lighting, clean white background, child counseling patient, behavior well-regulated","behavior_regulation_neutral.webp":"soft watercolor illustration, kawaii style, child age 9-13, slightly clenched fists, tense jaw, trying to hold back frustration, restless stance, blue-gray ambient lighting, clean white background, child counseling patient, building anger","behavior_regulation_distress.webp":"soft watercolor illustration, kawaii style, child age 9-13, explosive frustrated expression but NOT violent, abstract red burst around figure as metaphor, stomping foot, tears of frustration, warm red ambient lighting, clean white background, child counseling patient, behavioral dysregulation, no actual violence depicted","child_trauma_calm.webp":"soft watercolor illustration, kawaii style, child age 8-14, sitting in warm sunlight, holding comfort object (stuffed animal), brave gentle smile, feeling safe expression, soft teal ambient lighting, clean white background, child counseling patient, healing from trauma","child_trauma_neutral.webp":"soft watercolor illustration, kawaii style, child age 8-14, alert watchful eyes, clutching stuffed animal tightly, guarded posture, flinching slightly, blue-gray ambient lighting, clean white background, child counseling patient, hypervigilant","child_trauma_distress.webp":"soft watercolor illustration, kawaii style, child age 8-14, hiding behind stuffed animal, wide frightened eyes visible above it, tiny curled up figure, warm red ambient lighting, clean white background, child counseling patient, trauma response, gentle and protective depiction, NOT scary","child_ocd_calm.webp":"soft watercolor illustration, kawaii style, child age 9-13, relaxed expression, hands free and comfortable, messy-but-fine art project nearby showing flexibility, soft teal ambient lighting, clean white background, child counseling patient, freedom from compulsions","child_ocd_neutral.webp":"soft watercolor illustration, kawaii style, child age 9-13, organizing items meticulously, concentrated focused expression, slightly rigid posture, things need to be just right, blue-gray ambient lighting, clean white background, child counseling patient, OCD urges present","child_ocd_distress.webp":"soft watercolor illustration, kawaii style, child age 9-13, distressed repetitive hand motion, items around them not aligned causing visible anxiety, strained expression, warm red ambient lighting, clean white background, child counseling patient, compulsive behavior escalating","eating_disorder_calm.webp":"soft watercolor illustration, kawaii style, teenager age 13-17, calm at table with balanced meal, slight smile, comfortable relationship with food depicted, casual clothes, soft teal ambient lighting, clean white background, teen counseling patient, recovery progress, NO extreme thinness depicted","eating_disorder_neutral.webp":"soft watercolor illustration, kawaii style, teenager age 13-17, uneasy expression looking at food, hands in lap hesitating, conflicted eyes, blue-gray ambient lighting, clean white background, teen counseling patient, food anxiety, normal body proportions, NO extreme thinness","eating_disorder_distress.webp":"soft watercolor illustration, kawaii style, teenager age 13-17, turning away from food, hands covering face, tears, distressed relationship with meal, warm red ambient lighting, clean white background, teen counseling patient, eating distress, respectful depiction, NO extreme thinness or body shaming","emotion_crisis_calm.webp":"soft watercolor illustration, kawaii style, teenager age 14-17, calm centered expression, sitting in stable posture, emotional storm has passed, clear eyes looking forward, safety plan card visible in hand, soft teal ambient lighting, clean white background, teen counseling patient, stabilized after crisis","emotion_crisis_neutral.webp":"soft watercolor illustration, kawaii style, teenager age 14-17, intense turbulent expression, abstract ocean wave motif around figure representing emotional turbulence, gripping chair arms, blue-gray ambient lighting, clean white background, teen counseling patient, emotional escalation, metaphorical not literal","emotion_crisis_distress.webp":"soft watercolor illustration, kawaii style, teenager age 14-17, overwhelmed by abstract emotional storm (swirling colors around figure), hunched over, abstract representation of emotional flooding, NO self-harm depicted, warm red ambient lighting, clean white background, teen counseling patient, emotional crisis as metaphorical storm","child_cbt.webp":"soft watercolor illustration, kawaii style, young professional child therapist, holding cognitive behavioral therapy worksheet for kids with colorful illustrations, warm smile, casual professional attire with friendly lanyard, approachable for children, clean white background","play_therapy.webp":"soft watercolor illustration, kawaii style, play therapist sitting on floor, surrounded by therapeutic toys and puppets, sand tray nearby, playful warm expression, comfortable play-friendly clothing with colorful apron, approachable and fun, clean white background","parent_training.webp":"soft watercolor illustration, kawaii style, parent training specialist, holding parenting resource booklet, warm reassuring expression, sitting in welcoming posture, smart casual professional attire, trustworthy and supportive appearance, clean white background","dbt_a.webp":"soft watercolor illustration, kawaii style, adolescent DBT therapist, holding emotion regulation skill cards, calm centered expression, balanced posture, professional but youth-friendly attire, mindful presence, clean white background","tf_cbt.webp":"soft watercolor illustration, kawaii style, trauma-focused child therapist, gentle protective expression, holding safety plan with child-friendly illustrations, warm professional attire, creating safe space aura, clean white background","family_therapy.webp":"soft watercolor illustration, kawaii style, family therapist, family therapy figurines set nearby, inclusive welcoming gesture, warm expression, professional attire with warm colors, family systems approach, clean white background","asd_early_calm.webp":"soft watercolor illustration, ultra kawaii style, toddler age 2-4, making gentle eye contact, slight smile, playing with toy functionally, round chubby features, oversized head, soft teal ambient lighting, clean white background, infant developmental center patient, connected and engaged","asd_early_neutral.webp":"soft watercolor illustration, ultra kawaii style, toddler age 2-4, looking to the side avoiding eye contact, spinning a toy wheel repetitively, absorbed in own world expression, round chubby features, blue-gray ambient lighting, clean white background, infant developmental center patient","asd_early_distress.webp":"soft watercolor illustration, ultra kawaii style, toddler age 2-4, covering ears, overwhelmed expression from sensory input, scrunched face, tears, warm red ambient lighting, clean white background, infant developmental center patient, sensory overwhelm, gentle depiction","dev_delay_calm.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-3, curious wide eyes exploring a developmental toy, happy engaged expression, reaching for colorful blocks, round chubby features, soft teal ambient lighting, clean white background, infant developmental center patient, learning and growing","dev_delay_neutral.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-3, sitting with developmental toy, slightly confused expression trying to figure it out, looking at toy with concentration, round chubby features, blue-gray ambient lighting, clean white background, infant developmental center patient","dev_delay_distress.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-3, frustrated with task too difficult, pushing toy away, crying face, round chubby features, warm red ambient lighting, clean white background, infant developmental center patient, frustration with developmental challenges","attachment_calm.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-3, reaching toward parent figure with joyful expression, secure attachment posture, arms up for hug, round chubby features, soft teal ambient lighting, clean white background, infant developmental center patient, secure bond","attachment_neutral.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-3, ambivalent expression, half reaching toward and half pulling away, uncertain whether to approach, round chubby features, blue-gray ambient lighting, clean white background, infant developmental center patient, insecure attachment","attachment_distress.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-3, crying and distressed when separated, reaching out desperately, anxious panicked face, round chubby features, warm red ambient lighting, clean white background, infant developmental center patient, attachment distress, gentle depiction","sensory_calm.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-4, happily touching different textures, curious exploring hands, content smile, sensory play, round chubby features, soft teal ambient lighting, clean white background, infant developmental center patient, sensory integration success","sensory_neutral.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-4, cautiously touching new texture with one finger, uncertain hesitant expression, round chubby features, blue-gray ambient lighting, clean white background, infant developmental center patient, sensory sensitivity","sensory_distress.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-4, pulling hands away from sensory input, scrunched face refusing to touch, overwhelmed by texture or sound, round chubby features, warm red ambient lighting, clean white background, infant developmental center patient, sensory avoidance","speech_delay_calm.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-4, mouth open forming words, excited expression at speaking, pointing at picture communication card, round chubby features, soft teal ambient lighting, clean white background, infant developmental center patient, language breakthrough","speech_delay_neutral.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-4, gesturing and pointing instead of speaking, eager expression trying to communicate without words, round chubby features, blue-gray ambient lighting, clean white background, infant developmental center patient, pre-verbal communication","speech_delay_distress.webp":"soft watercolor illustration, ultra kawaii style, toddler age 1-4, frustrated trying to speak, mouth open but struggling, tears of communication frustration, gesturing desperately, round chubby features, warm red ambient lighting, clean white background, infant developmental center patient, communication frustration","behavioral_infant_calm.webp":"soft watercolor illustration, ultra kawaii style, toddler age 2-5, sitting calmly following instructions, well-regulated expression, waiting patiently, round chubby features, soft teal ambient lighting, clean white background, infant developmental center patient, good behavioral regulation","behavioral_infant_neutral.webp":"soft watercolor illustration, ultra kawaii style, toddler age 2-5, starting to get restless, wiggly posture, pouting expression, building frustration, round chubby features, blue-gray ambient lighting, clean white background, infant developmental center patient, behavior escalating","behavioral_infant_distress.webp":"soft watercolor illustration, ultra kawaii style, toddler age 2-5, full tantrum pose, lying on floor crying, arms and legs flailing, red-faced, round chubby features, warm red ambient lighting, clean white background, infant developmental center patient, tantrum, depicted as normal toddler behavior not scary","aba.webp":"soft watercolor illustration, kawaii style, ABA therapist, professional organized appearance, holding data collection clipboard, reinforcement tokens visible, structured and systematic pose, warm but professional smile, clean white background","developmental.webp":"soft watercolor illustration, kawaii style, developmental play therapist, sitting cross-legged on floor, holding developmental toys, warm nurturing expression, comfortable play-appropriate clothing, ready to engage with toddlers at their level, clean white background","attachment_therapy.webp":"soft watercolor illustration, kawaii style, attachment therapist, warm maternal/paternal presence, sitting between parent and child figures, coaching gesture, gentle calm expression, cozy professional attire, clean white background","sensory_integration.webp":"soft watercolor illustration, kawaii style, sensory integration therapist, standing near therapy swing and sensory tools, active engaged posture, comfortable athletic-professional attire, holding textured ball, energetic but calm expression, clean white background","speech_language.webp":"soft watercolor illustration, kawaii style, speech-language pathologist, holding picture communication cards and AAC device, expressive animated face demonstrating mouth movements, professional but child-friendly attire, sitting at child-height table, clean white background","main_theme.mp3":"Gentle piano and soft strings, hopeful and warm atmosphere, counseling center theme, Korean drama OST style, medium tempo 90bpm, seamless loop, no vocals, calm and inspiring, like a lighthouse guiding lost souls","adult_ambient.mp3":"Lo-fi ambient piano with soft rain texture, calm professional office atmosphere, gentle Rhodes keys, subtle jazz chords, 70bpm, relaxing therapy session background, no vocals, seamless loop, adult counseling center mood","child_playful.mp3":"Bright cheerful marimba and acoustic guitar, playful but gentle melody, children's therapy center atmosphere, warm and safe feeling, 100bpm, xylophone accents, no vocals, seamless loop, like a colorful playground indoors","infant_gentle.mp3":"Soft music box melody with harp arpeggios, gentle lullaby style, pastel dreamland atmosphere, very slow 60bpm, celesta and soft chimes, no vocals, seamless loop, infant developmental center, tender and nurturing","crisis_tension.mp3":"Tense string tremolo with deep cello, anxious atmospheric soundtrack, slow build suspense, 80bpm, minor key, heartbeat-like bass pulse, no vocals, seamless loop, psychological crisis moment, NOT horror — more concerned and urgent","ending_hope.mp3":"Emotional orchestral crescendo, full strings and piano building to triumphant climax, hopeful victory theme, Korean drama finale style, 100bpm, brass fanfare at peak, healing and achievement atmosphere, no vocals, cinematic, tears of joy","gameover_sad.mp3":"Solo piano, melancholic minor key melody, gentle rain ambiance, bittersweet and reflective, 60bpm, simple and sparse, sense of loss but also possibility of trying again, no vocals, short 60 seconds, fading ending","click.mp3":"soft UI click","turn_advance.mp3":"turn notification chime","treat_complete.mp3":"healing chime","discharge.mp3":"celebration fanfare short","crisis.mp3":"warning alert tone","build.mp3":"construction complete","hire.mp3":"welcome chime","milestone.mp3":"achievement sparkle","parent_meeting.mp3":"doorbell chime","assessment.mp3":"pen writing sound","stage_switch.mp3":"elevator ding","achievement.mp3":"trophy unlocked","office_calm.mp3":"office ambience loop","rain_window.mp3":"rain on window loop","garden_birds.mp3":"garden birds loop","playground_indoor.mp3":"indoor playground ambience","school_hallway.mp3":"school corridor ambience","nature_stream.mp3":"stream water loop","music_box.mp3":"music box melody loop","soft_chimes.mp3":"wind chimes gentle loop","heartbeat_womb.mp3":"heartbeat ambient loop"};
+
+const DATA = [
+  // ── 1. 성인 내담자 캐릭터 ──
+  { id: 1, title: "성인 내담자 캐릭터", count: 21, path: "characters/patient/", size: "256×256", tag: "character", items: [
+    { group: "불안 (anxiety)" },
+    { file: "anxiety_calm.webp", desc: "불안 — 안정 상태" },
+    { file: "anxiety_neutral.webp", desc: "불안 — 중간 상태" },
+    { file: "anxiety_distress.webp", desc: "불안 — 고통 상태" },
+    { group: "관계 (relationship)" },
+    { file: "relationship_calm.webp", desc: "관계 — 안정" },
+    { file: "relationship_neutral.webp", desc: "관계 — 중간" },
+    { file: "relationship_distress.webp", desc: "관계 — 고통" },
+    { group: "강박 (obsession)" },
+    { file: "obsession_calm.webp", desc: "강박 — 안정" },
+    { file: "obsession_neutral.webp", desc: "강박 — 중간" },
+    { file: "obsession_distress.webp", desc: "강박 — 고통" },
+    { group: "트라우마 (trauma)" },
+    { file: "trauma_calm.webp", desc: "트라우마 — 안정" },
+    { file: "trauma_neutral.webp", desc: "트라우마 — 중간" },
+    { file: "trauma_distress.webp", desc: "트라우마 — 고통" },
+    { group: "중독 (addiction)" },
+    { file: "addiction_calm.webp", desc: "중독 — 안정" },
+    { file: "addiction_neutral.webp", desc: "중독 — 중간" },
+    { file: "addiction_distress.webp", desc: "중독 — 고통" },
+    { group: "정서조절 (personality)" },
+    { file: "personality_calm.webp", desc: "정서조절 — 안정" },
+    { file: "personality_neutral.webp", desc: "정서조절 — 중간" },
+    { file: "personality_distress.webp", desc: "정서조절 — 고통" },
+    { group: "정신증 (psychosis)" },
+    { file: "psychosis_calm.webp", desc: "정신증 — 안정" },
+    { file: "psychosis_neutral.webp", desc: "정신증 — 중간" },
+    { file: "psychosis_distress.webp", desc: "정신증 — 고통" },
+  ]},
+
+  // ── 2. 성인 층 배경 ──
+  { id: 2, title: "성인 층 배경", count: 2, path: "floors/", size: "1920×1080", tag: "environment", items: [
+    { file: "insight.webp", desc: "심리상담센터 (보라, EM 16~35)" },
+    { file: "diagnostic.webp", desc: "집중치료센터 (앰버, EM 61~80)" },
+  ]},
+
+  // ── 3. 성인 치료중 포즈 (내담자) ──
+  { id: 3, title: "성인 치료중 포즈 — 내담자", count: 8, path: "characters/patient/poses/", size: "256×256", tag: "character", items: [
+    { file: "depression_treat.webp", desc: "우울 — 상담 장면" },
+    { file: "anxiety_treat.webp", desc: "불안 — 호흡 훈련" },
+    { file: "relationship_treat.webp", desc: "관계 — 대화 장면" },
+    { file: "obsession_treat.webp", desc: "강박 — 노출 훈련" },
+    { file: "trauma_treat.webp", desc: "트라우마 — 그라운딩" },
+    { file: "addiction_treat.webp", desc: "중독 — 동기면담" },
+    { file: "personality_treat.webp", desc: "정서조절 — DBT 스킬" },
+    { file: "psychosis_treat.webp", desc: "정신증 — 현실지향 상담" },
+  ]},
+
+  // ── 4. 성인 치료중 포즈 (상담사) ──
+  { id: 4, title: "성인 치료중 포즈 — 상담사", count: 6, path: "characters/counselor/poses/", size: "256×256", tag: "character", items: [
+    { file: "cbt_treat.webp", desc: "인지행동 — 화이트보드" },
+    { file: "psychodynamic_treat.webp", desc: "정신역동 — 경청 자세" },
+    { file: "interpersonal_treat.webp", desc: "대인관계 — 환영 제스처" },
+    { file: "dbt_treat.webp", desc: "DBT — 감정조절 워크시트" },
+    { file: "trauma_focused_treat.webp", desc: "트라우마초점 — 안전 공간" },
+    { file: "family_systemic_treat.webp", desc: "가족체계 — 가계도" },
+  ]},
+
+  // ── 5. 성인 번아웃 ──
+  { id: 5, title: "성인 상담사 번아웃", count: 6, path: "characters/counselor/poses/", size: "256×256", tag: "character", items: [
+    { file: "cbt_burnout.webp", desc: "인지행동 — 번아웃" },
+    { file: "psychodynamic_burnout.webp", desc: "정신역동 — 번아웃" },
+    { file: "interpersonal_burnout.webp", desc: "대인관계 — 번아웃" },
+    { file: "dbt_burnout.webp", desc: "DBT — 번아웃" },
+    { file: "trauma_focused_burnout.webp", desc: "트라우마초점 — 번아웃" },
+    { file: "family_systemic_burnout.webp", desc: "가족체계 — 번아웃" },
+  ]},
+
+  // ── 6. 종결/사고 연출 ──
+  { id: 6, title: "종결/사고 연출", count: 2, path: "cutscenes/", size: "1280×720", tag: "cutscene", items: [
+    { file: "discharge_scene.webp", desc: "상담 종결 — 빛의 문 장면" },
+    { file: "crisis_scene.webp", desc: "위기 사고 — 긴급 연출" },
+  ]},
+
+  // ── 7. NPC ──
+  { id: 7, title: "NPC 캐릭터", count: 8, path: "characters/npc/", size: "256×256", tag: "character", items: [
+    { file: "guardian.webp", desc: "보호자 (면담 이벤트)" },
+    { file: "reporter.webp", desc: "기자 (언론 이벤트)" },
+    { file: "donor.webp", desc: "후원자 (후원금 이벤트)" },
+    { file: "inspector.webp", desc: "감독관 (감사 이벤트)" },
+    { file: "teacher.webp", desc: "교사 (학교자문)" },
+    { file: "wee_officer.webp", desc: "Wee센터 상담사" },
+    { file: "probation_officer.webp", desc: "보호관찰관" },
+    { file: "gov_official.webp", desc: "정부 관계자" },
+  ]},
+
+  // ── 8. 성인 시설 Lv.2/3 ──
+  { id: 8, title: "성인 시설 Lv.2 / Lv.3", count: 12, path: "facilities/", size: "512×384", tag: "facility", items: [
+    { group: "개인상담실" },
+    { file: "individual_room_lv2.webp", desc: "개인상담실 Lv.2" },
+    { file: "individual_room_lv3.webp", desc: "개인상담실 Lv.3" },
+    { group: "집단상담실" },
+    { file: "group_room_lv2.webp", desc: "집단상담실 Lv.2" },
+    { file: "group_room_lv3.webp", desc: "집단상담실 Lv.3" },
+    { group: "노출치료실" },
+    { file: "exposure_lab_lv2.webp", desc: "노출치료실 Lv.2" },
+    { file: "exposure_lab_lv3.webp", desc: "노출치료실 Lv.3" },
+    { group: "마음챙김실" },
+    { file: "mindfulness_room_lv2.webp", desc: "마음챙김실 Lv.2" },
+    { file: "mindfulness_room_lv3.webp", desc: "마음챙김실 Lv.3" },
+    { group: "가족상담실" },
+    { file: "family_room_lv2.webp", desc: "가족상담실 Lv.2" },
+    { file: "family_room_lv3.webp", desc: "가족상담실 Lv.3" },
+    { group: "활동치료실" },
+    { file: "activity_room_lv2.webp", desc: "활동치료실 Lv.2" },
+    { file: "activity_room_lv3.webp", desc: "활동치료실 Lv.3" },
+  ]},
+
+  // ── 9. 아동 시설 ──
+  { id: 9, title: "아동 시설 (기본+Lv+내부)", count: 24, path: "facilities-child/", size: "512×384", tag: "facility", items: [
+    { group: "놀이치료실 (play_room)" },
+    { file: "play_room.webp", desc: "기본" }, { file: "play_room_lv2.webp", desc: "Lv.2" }, { file: "play_room_lv3.webp", desc: "Lv.3" },
+    { file: "interior/play_room_interior.webp", desc: "내부 미리보기" },
+    { group: "부모상담실 (parent_room)" },
+    { file: "parent_room.webp", desc: "기본" }, { file: "parent_room_lv2.webp", desc: "Lv.2" }, { file: "parent_room_lv3.webp", desc: "Lv.3" },
+    { file: "interior/parent_room_interior.webp", desc: "내부" },
+    { group: "사회기술훈련실 (group_activity)" },
+    { file: "group_activity.webp", desc: "기본" }, { file: "group_activity_lv2.webp", desc: "Lv.2" }, { file: "group_activity_lv3.webp", desc: "Lv.3" },
+    { file: "interior/group_activity_interior.webp", desc: "내부" },
+    { group: "아동노출치료실 (exposure_child)" },
+    { file: "exposure_child.webp", desc: "기본" }, { file: "exposure_child_lv2.webp", desc: "Lv.2" }, { file: "exposure_child_lv3.webp", desc: "Lv.3" },
+    { file: "interior/exposure_child_interior.webp", desc: "내부" },
+    { group: "영양치료실 (nutrition_clinic)" },
+    { file: "nutrition_clinic.webp", desc: "기본" }, { file: "nutrition_clinic_lv2.webp", desc: "Lv.2" }, { file: "nutrition_clinic_lv3.webp", desc: "Lv.3" },
+    { file: "interior/nutrition_clinic_interior.webp", desc: "내부" },
+    { group: "위기개입실 (crisis_room)" },
+    { file: "crisis_room.webp", desc: "기본" }, { file: "crisis_room_lv2.webp", desc: "Lv.2" }, { file: "crisis_room_lv3.webp", desc: "Lv.3" },
+    { file: "interior/crisis_room_interior.webp", desc: "내부" },
+  ]},
+
+  // ── 10. 영유아 시설 ──
+  { id: 10, title: "영유아 시설 (기본+Lv+내부)", count: 20, path: "facilities-infant/", size: "512×384", tag: "facility", items: [
+    { group: "영유아놀이실 (infant_play)" },
+    { file: "infant_play.webp", desc: "기본" }, { file: "infant_play_lv2.webp", desc: "Lv.2" }, { file: "infant_play_lv3.webp", desc: "Lv.3" },
+    { file: "interior/infant_play_interior.webp", desc: "내부" },
+    { group: "감각통합실 (sensory_room)" },
+    { file: "sensory_room.webp", desc: "기본" }, { file: "sensory_room_lv2.webp", desc: "Lv.2" }, { file: "sensory_room_lv3.webp", desc: "Lv.3" },
+    { file: "interior/sensory_room_interior.webp", desc: "내부" },
+    { group: "부모코칭실 (parent_coaching)" },
+    { file: "parent_coaching.webp", desc: "기본" }, { file: "parent_coaching_lv2.webp", desc: "Lv.2" }, { file: "parent_coaching_lv3.webp", desc: "Lv.3" },
+    { file: "interior/parent_coaching_interior.webp", desc: "내부" },
+    { group: "언어치료실 (language_lab)" },
+    { file: "language_lab.webp", desc: "기본" }, { file: "language_lab_lv2.webp", desc: "Lv.2" }, { file: "language_lab_lv3.webp", desc: "Lv.3" },
+    { file: "interior/language_lab_interior.webp", desc: "내부" },
+    { group: "구조화교실 (structured_teaching)" },
+    { file: "structured_teaching.webp", desc: "기본" }, { file: "structured_teaching_lv2.webp", desc: "Lv.2" }, { file: "structured_teaching_lv3.webp", desc: "Lv.3" },
+    { file: "interior/structured_teaching_interior.webp", desc: "내부" },
+  ]},
+
+  // ── 11. 성인 시설 내부 ──
+  { id: 11, title: "성인 시설 내부 일러스트", count: 6, path: "facilities/interior/", size: "512×384", tag: "facility", items: [
+    { file: "individual_room_interior.webp", desc: "개인상담실 내부" },
+    { file: "group_room_interior.webp", desc: "집단상담실 내부" },
+    { file: "exposure_lab_interior.webp", desc: "노출치료실 내부" },
+    { file: "mindfulness_room_interior.webp", desc: "마음챙김실 내부" },
+    { file: "family_room_interior.webp", desc: "가족상담실 내부" },
+    { file: "activity_room_interior.webp", desc: "활동치료실 내부" },
+  ]},
+
+  // ── 12. 아동 층 배경 ──
+  { id: 12, title: "아동 층 배경", count: 5, path: "floors-child/", size: "1920×1080", tag: "environment", items: [
+    { file: "child_garden.webp", desc: "하늘놀이터 (☀ 앰버, EM 0~20)" },
+    { file: "child_comfort.webp", desc: "안심상담실 (◇ 바이올렛, EM 21~40)" },
+    { file: "child_care.webp", desc: "마음돌봄센터 (○ 스카이, EM 41~60)" },
+    { file: "child_intensive.webp", desc: "집중돌봄센터 (◈ 오렌지, EM 61~80)" },
+    { file: "child_shelter.webp", desc: "보호치료센터 (▽ 레드, EM 81~100)" },
+  ]},
+
+  // ── 13. 영유아 층 배경 ──
+  { id: 13, title: "영유아 층 배경", count: 4, path: "floors-infant/", size: "1920×1080", tag: "environment", items: [
+    { file: "infant_bloom.webp", desc: "꽃피는놀이방 (✿ 그린, EM 0~25)" },
+    { file: "infant_nurture.webp", desc: "따뜻한돌봄방 (♡ 로즈, EM 26~50)" },
+    { file: "infant_care.webp", desc: "발달지원센터 (◎ 블루, EM 51~75)" },
+    { file: "infant_cocoon.webp", desc: "안전한둥지 (◑ 퍼플, EM 76~100)" },
+  ]},
+
+  // ── 14. 센터 외관 ──
+  { id: 14, title: "센터 외관 (평판 등급별)", count: 6, path: "building/", size: "800×600", tag: "environment", items: [
+    { file: "center_f.webp", desc: "F등급 — 낡은 상담소" },
+    { file: "center_d.webp", desc: "D등급 — 동네 치료실" },
+    { file: "center_c.webp", desc: "C등급 — 지역 상담센터" },
+    { file: "center_b.webp", desc: "B등급 — 유명 치유센터" },
+    { file: "center_a.webp", desc: "A등급 — 마음의 등대" },
+    { file: "center_s.webp", desc: "S등급 — 통합발달치유원" },
+  ]},
+
+  // ── 15. 업적 뱃지 ──
+  { id: 15, title: "업적 뱃지 아이콘", count: 26, path: "ui/", size: "128×128", tag: "ui", items: [
+    { group: "성인 업적 (10)" },
+    { file: "badge_first_treat.webp", desc: "첫 상담" },
+    { file: "badge_first_discharge.webp", desc: "첫 종결" },
+    { file: "badge_facility_master.webp", desc: "시설 완성" },
+    { file: "badge_counselor_team.webp", desc: "풀 팀" },
+    { file: "badge_reputation_a.webp", desc: "A등급 달성" },
+    { file: "badge_100_treats.webp", desc: "100회 상담" },
+    { file: "badge_zero_crisis.webp", desc: "무사고" },
+    { file: "badge_all_issues.webp", desc: "전 문제영역" },
+    { file: "badge_economy_master.webp", desc: "경제 마스터" },
+    { file: "badge_lighthouse_guardian.webp", desc: "등대 수호자" },
+    { group: "아동 업적 (8)" },
+    { file: "badge_first_child_discharge.webp", desc: "첫 아동 종결" },
+    { file: "badge_play_power.webp", desc: "놀이치료 마스터" },
+    { file: "badge_parent_partner.webp", desc: "부모 파트너" },
+    { file: "badge_school_expert.webp", desc: "학교자문 전문" },
+    { file: "badge_child_specialist.webp", desc: "아동 전문센터" },
+    { file: "badge_crisis_guardian.webp", desc: "위기 수호자" },
+    { file: "badge_rehabilitation.webp", desc: "재활 성공" },
+    { file: "badge_precise_diagnosis.webp", desc: "정밀 심리검사" },
+    { group: "영유아 업적 (8)" },
+    { file: "badge_first_milestone.webp", desc: "첫 이정표" },
+    { file: "badge_golden_time.webp", desc: "골든타임 수호" },
+    { file: "badge_developmental_miracle.webp", desc: "발달의 기적" },
+    { file: "badge_parent_coach.webp", desc: "부모코칭 마스터" },
+    { file: "badge_integration_master.webp", desc: "통합 마스터" },
+    { file: "badge_voucher_expert.webp", desc: "바우처 전문" },
+    { file: "badge_stress_resolver.webp", desc: "스트레스 해소" },
+    { file: "badge_no_dispute.webp", desc: "무분쟁 센터" },
+  ]},
+
+  // ── 16. 이벤트 일러스트 ──
+  { id: 16, title: "이벤트 일러스트", count: 17, path: "cutscenes/", size: "1280×720", tag: "cutscene", items: [
+    { group: "성인 이벤트 (5)" },
+    { file: "event_guardian_visit.webp", desc: "보호자 방문" },
+    { file: "event_media_coverage.webp", desc: "언론 취재" },
+    { file: "event_counselor_burnout.webp", desc: "상담사 번아웃" },
+    { file: "event_patient_conflict.webp", desc: "내담자 갈등" },
+    { file: "event_donation.webp", desc: "후원금 수여" },
+    { group: "아동 이벤트 (6)" },
+    { file: "event_teacher_request.webp", desc: "교사 의뢰" },
+    { file: "event_parent_anxiety.webp", desc: "부모 불안" },
+    { file: "event_child_friendship.webp", desc: "아동 우정" },
+    { file: "event_sns_criticism.webp", desc: "SNS 비난" },
+    { file: "event_academic_invitation.webp", desc: "학술 초청" },
+    { file: "event_abuse_suspicion.webp", desc: "학대 의심 신고" },
+    { group: "영유아 이벤트 (6)" },
+    { file: "event_gov_funding.webp", desc: "정부 지원금" },
+    { file: "event_parent_burnout.webp", desc: "부모 번아웃" },
+    { file: "event_dev_assessment.webp", desc: "발달검사" },
+    { file: "event_sibling_jealousy.webp", desc: "형제 시기" },
+    { file: "event_milestone_celebration.webp", desc: "이정표 축하" },
+    { file: "event_waitlist_complaint.webp", desc: "대기 민원" },
+  ]},
+
+  // ── 17. 인트로 컷씬 ──
+  { id: 17, title: "인트로 컷씬", count: 4, path: "cutscenes/", size: "1280×720", tag: "cutscene", items: [
+    { file: "intro_page1.webp", desc: "1) 작은 상담센터 조감도" },
+    { file: "intro_page2.webp", desc: "2) EM 개념 시각화" },
+    { file: "intro_page3.webp", desc: "3) 근거기반 치료법" },
+    { file: "intro_page4.webp", desc: "4) 센터 성장 과정" },
+  ]},
+
+  // ── 18. 엔딩 컷씬 ──
+  { id: 18, title: "엔딩 컷씬", count: 2, path: "cutscenes/", size: "1280×720", tag: "cutscene", items: [
+    { file: "ending_a.webp", desc: "엔딩 A — 아동의 벗" },
+    { file: "ending_s.webp", desc: "엔딩 S — 통합 치유의 빛" },
+  ]},
+
+  // ── 19. 게임오버 ──
+  { id: 19, title: "게임오버 일러스트", count: 2, path: "cutscenes/", size: "1280×720", tag: "cutscene", items: [
+    { file: "gameover_bankrupt.webp", desc: "파산 — 빈 상담실" },
+    { file: "gameover_trust_lost.webp", desc: "신뢰 상실 — 떠나는 내담자" },
+  ]},
+
+  // ── 20. UI 아이콘 ──
+  { id: 20, title: "UI 아이콘", count: 3, path: "ui/", size: "128×128", tag: "ui", items: [
+    { file: "icon_gold.webp", desc: "골드 코인" },
+    { file: "icon_ap.webp", desc: "행동력 번개" },
+    { file: "icon_reputation.webp", desc: "평판 별" },
+  ]},
+
+  // ── 21. 아동 내담자 ──
+  { id: 21, title: "아동 내담자 캐릭터", count: 24, path: "characters/patient-child/", size: "256×256", tag: "character", items: [
+    { group: "아동 불안 (child_anxiety)" },
+    { file: "child_anxiety_calm.webp", desc: "안정" }, { file: "child_anxiety_neutral.webp", desc: "중간" }, { file: "child_anxiety_distress.webp", desc: "고통" },
+    { group: "청소년 우울 (child_depression)" },
+    { file: "child_depression_calm.webp", desc: "안정" }, { file: "child_depression_neutral.webp", desc: "중간" }, { file: "child_depression_distress.webp", desc: "고통" },
+    { group: "ADHD (adhd)" },
+    { file: "adhd_calm.webp", desc: "안정" }, { file: "adhd_neutral.webp", desc: "중간" }, { file: "adhd_distress.webp", desc: "고통" },
+    { group: "행동조절 (behavior_regulation)" },
+    { file: "behavior_regulation_calm.webp", desc: "안정" }, { file: "behavior_regulation_neutral.webp", desc: "중간" }, { file: "behavior_regulation_distress.webp", desc: "고통" },
+    { group: "아동 트라우마 (child_trauma)" },
+    { file: "child_trauma_calm.webp", desc: "안정" }, { file: "child_trauma_neutral.webp", desc: "중간" }, { file: "child_trauma_distress.webp", desc: "고통" },
+    { group: "아동 강박 (child_ocd)" },
+    { file: "child_ocd_calm.webp", desc: "안정" }, { file: "child_ocd_neutral.webp", desc: "중간" }, { file: "child_ocd_distress.webp", desc: "고통" },
+    { group: "섭식장애 (eating_disorder)" },
+    { file: "eating_disorder_calm.webp", desc: "안정" }, { file: "eating_disorder_neutral.webp", desc: "중간" }, { file: "eating_disorder_distress.webp", desc: "고통" },
+    { group: "정서위기 (emotion_crisis)" },
+    { file: "emotion_crisis_calm.webp", desc: "안정" }, { file: "emotion_crisis_neutral.webp", desc: "중간" }, { file: "emotion_crisis_distress.webp", desc: "고통" },
+  ]},
+
+  // ── 22. 아동 상담사 ──
+  { id: 22, title: "아동 상담사 캐릭터", count: 6, path: "characters/counselor-child/", size: "256×256", tag: "character", items: [
+    { file: "child_cbt.webp", desc: "아동 인지행동치료" },
+    { file: "play_therapy.webp", desc: "놀이치료" },
+    { file: "parent_training.webp", desc: "부모훈련/PCIT" },
+    { file: "dbt_a.webp", desc: "청소년 DBT" },
+    { file: "tf_cbt.webp", desc: "트라우마초점 CBT" },
+    { file: "family_therapy.webp", desc: "가족치료/MST" },
+  ]},
+
+  // ── 23. 영유아 내담자 ──
+  { id: 23, title: "영유아 내담자 캐릭터", count: 18, path: "characters/patient-infant/", size: "256×256", tag: "character", items: [
+    { group: "자폐스펙트럼 (asd_early)" },
+    { file: "asd_early_calm.webp", desc: "안정" }, { file: "asd_early_neutral.webp", desc: "중간" }, { file: "asd_early_distress.webp", desc: "고통" },
+    { group: "발달지연 (dev_delay)" },
+    { file: "dev_delay_calm.webp", desc: "안정" }, { file: "dev_delay_neutral.webp", desc: "중간" }, { file: "dev_delay_distress.webp", desc: "고통" },
+    { group: "애착문제 (attachment)" },
+    { file: "attachment_calm.webp", desc: "안정" }, { file: "attachment_neutral.webp", desc: "중간" }, { file: "attachment_distress.webp", desc: "고통" },
+    { group: "감각처리 (sensory)" },
+    { file: "sensory_calm.webp", desc: "안정" }, { file: "sensory_neutral.webp", desc: "중간" }, { file: "sensory_distress.webp", desc: "고통" },
+    { group: "언어발달지연 (speech_delay)" },
+    { file: "speech_delay_calm.webp", desc: "안정" }, { file: "speech_delay_neutral.webp", desc: "중간" }, { file: "speech_delay_distress.webp", desc: "고통" },
+    { group: "영유아 행동문제 (behavioral_infant)" },
+    { file: "behavioral_infant_calm.webp", desc: "안정" }, { file: "behavioral_infant_neutral.webp", desc: "중간" }, { file: "behavioral_infant_distress.webp", desc: "고통" },
+  ]},
+
+  // ── 24. 영유아 상담사 ──
+  { id: 24, title: "영유아 상담사 캐릭터", count: 5, path: "characters/counselor-infant/", size: "256×256", tag: "character", items: [
+    { file: "aba.webp", desc: "응용행동분석(ABA)" },
+    { file: "developmental.webp", desc: "발달놀이중재" },
+    { file: "attachment_therapy.webp", desc: "애착중재" },
+    { file: "sensory_integration.webp", desc: "감각통합치료" },
+    { file: "speech_language.webp", desc: "언어치료" },
+  ]},
+
+  // ── 25. BGM ──
+  { id: 25, title: "BGM 트랙", count: 7, path: "audio/bgm/", size: "MP3 60~120s", tag: "audio", items: [
+    { file: "main_theme.mp3", desc: "메인 테마 — 피아노+현악" },
+    { file: "adult_ambient.mp3", desc: "성인센터 — Lo-fi 피아노" },
+    { file: "child_playful.mp3", desc: "아동센터 — 마림바+기타" },
+    { file: "infant_gentle.mp3", desc: "영유아센터 — 오르골+하프" },
+    { file: "crisis_tension.mp3", desc: "위기 상황 — 현악 트레몰로" },
+    { file: "ending_hope.mp3", desc: "엔딩 — 풀 오케스트라" },
+    { file: "gameover_sad.mp3", desc: "게임오버 — 솔로 피아노" },
+  ]},
+
+  // ── 26. SFX ──
+  { id: 26, title: "SFX 효과음", count: 12, path: "audio/sfx/", size: "MP3 0.5~3s", tag: "audio", items: [
+    { file: "click.mp3", desc: "UI 클릭" },
+    { file: "turn_advance.mp3", desc: "턴 진행" },
+    { file: "treat_complete.mp3", desc: "상담 완료" },
+    { file: "discharge.mp3", desc: "종결 팡파레" },
+    { file: "crisis.mp3", desc: "위기 경보" },
+    { file: "build.mp3", desc: "건설 완료" },
+    { file: "hire.mp3", desc: "고용 차임" },
+    { file: "milestone.mp3", desc: "이정표 달성" },
+    { file: "parent_meeting.mp3", desc: "부모면담" },
+    { file: "assessment.mp3", desc: "심리검사" },
+    { file: "stage_switch.mp3", desc: "센터 전환" },
+    { file: "achievement.mp3", desc: "업적 달성" },
+  ]},
+
+  // ── 27. 환경음 ──
+  { id: 27, title: "환경음 루프", count: 9, path: "audio/ambient/", size: "MP3 30~60s loop", tag: "audio", items: [
+    { group: "성인센터" },
+    { file: "office_calm.mp3", desc: "사무실 톤" },
+    { file: "rain_window.mp3", desc: "창문 빗소리" },
+    { file: "garden_birds.mp3", desc: "옥상정원 새소리" },
+    { group: "아동센터" },
+    { file: "playground_indoor.mp3", desc: "실내 놀이터" },
+    { file: "school_hallway.mp3", desc: "학교 복도" },
+    { file: "nature_stream.mp3", desc: "시냇물 소리" },
+    { group: "영유아센터" },
+    { file: "music_box.mp3", desc: "오르골 멜로디" },
+    { file: "soft_chimes.mp3", desc: "윈드차임" },
+    { file: "heartbeat_womb.mp3", desc: "심장박동 포근함" },
+  ]},
+];
+
+const STORAGE_KEY = "maumteo_asset_checks";
+
+function loadChecks() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+}
+function saveChecks(checks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(checks));
+}
+
+let checks = loadChecks();
+let activeFilter = "all";
+
+function updateProgress() {
+  const total = DATA.reduce((s, c) => s + c.count, 0);
+  const done = Object.values(checks).filter(Boolean).length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById("progFill").style.width = pct + "%";
+  document.getElementById("progText").textContent = `${done} / ${total} 완료 (${pct}%)`;
+}
+
+function render() {
+  const container = document.getElementById("categories");
+  container.innerHTML = "";
+
+  for (const cat of DATA) {
+    if (activeFilter !== "all" && cat.tag !== activeFilter) continue;
+
+    const div = document.createElement("div");
+    div.className = "category";
+    div.dataset.id = cat.id;
+
+    const isAudio = cat.tag === "audio";
+    const countClass = isAudio ? "cat-count audio" : "cat-count";
+
+    div.innerHTML = `
+      <div class="category-header">
+        <div>
+          <span class="cat-title">${cat.id}. ${cat.title}</span>
+          <span class="cat-path">public/assets/${cat.path}</span>
+        </div>
+        <div class="cat-meta">
+          <span class="cat-size">${cat.size}</span>
+          <span class="${countClass}">${cat.count}</span>
+          <span class="arrow">▶</span>
+        </div>
+      </div>
+      <div class="items">
+        <table>
+          <thead><tr><th class="fcheck"></th><th>파일명</th><th>설명 / 프롬프트</th></tr></thead>
+          <tbody>${cat.items.map(item => {
+            if (item.group) {
+              return `<tr class="sub-group"><td></td><td colspan="2">${item.group}</td></tr>`;
+            }
+            const key = cat.path + item.file;
+            const checked = checks[key] ? "checked" : "";
+            const prompt = PROMPTS[item.file] || "";
+            const promptHtml = prompt
+              ? `<tr class="prompt-row"><td></td><td colspan="2"><div class="prompt-box"><div class="prompt-text">${prompt.replace(/</g,'&lt;')}</div><button class="copy-btn" data-prompt="${prompt.replace(/"/g,'&quot;').replace(/</g,'&lt;')}">복사</button></div></td></tr>`
+              : "";
+            return `<tr>
+              <td class="fcheck"><input type="checkbox" data-key="${key}" ${checked}></td>
+              <td class="fname">${item.file}</td>
+              <td class="fdesc">${item.desc}</td>
+            </tr>${promptHtml}`;
+          }).join("")}</tbody>
+        </table>
+      </div>
+    `;
+
+    div.querySelector(".category-header").addEventListener("click", () => {
+      div.classList.toggle("open");
+    });
+
+    container.appendChild(div);
+  }
+
+  container.addEventListener("change", (e) => {
+    if (e.target.type === "checkbox") {
+      const key = e.target.dataset.key;
+      checks[key] = e.target.checked;
+      saveChecks(checks);
+      updateProgress();
+    }
+  });
+
+  container.addEventListener("click", (e) => {
+    if (e.target.classList.contains("copy-btn")) {
+      const text = e.target.dataset.prompt;
+      navigator.clipboard.writeText(text).then(() => {
+        e.target.textContent = "복사됨!";
+        e.target.classList.add("copied");
+        setTimeout(() => { e.target.textContent = "복사"; e.target.classList.remove("copied"); }, 1500);
+      });
+    }
+  });
+
+  updateProgress();
+}
+
+// Filter buttons
+document.querySelector(".filter-bar").addEventListener("click", (e) => {
+  if (!e.target.classList.contains("filter-btn")) return;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  e.target.classList.add("active");
+  activeFilter = e.target.dataset.filter;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

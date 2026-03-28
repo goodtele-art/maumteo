@@ -12,7 +12,69 @@ export interface GuideEntry {
 }
 
 export const GUIDES: Record<string, GuideEntry> = {
-  // ── 튜토리얼 ──
+  // ── 단계적 튜토리얼 (1~10턴) ──
+  tut_welcome: {
+    id: "tut_welcome",
+    icon: "👋",
+    title: "마음터에 오신 것을 환영합니다!",
+    body: "내담자가 도착했어요. 격려 버튼을 눌러 응원해주세요.",
+  },
+  tut_counselor: {
+    id: "tut_counselor",
+    icon: "💬",
+    title: "상담사가 도착했습니다!",
+    body: "상담하기 버튼을 눌러 전문 치료를 시작하세요.",
+  },
+  tut_sidebar: {
+    id: "tut_sidebar",
+    icon: "🏥",
+    title: "새 내담자가 왔어요",
+    body: "왼쪽 층 탭에서 센터의 구조를 확인할 수 있습니다.",
+  },
+  tut_build: {
+    id: "tut_build",
+    icon: "🏗️",
+    title: "치료실을 지어볼까요?",
+    body: "적합한 치료실은 치료 효과를 높여줍니다.",
+  },
+  tut_hire: {
+    id: "tut_hire",
+    icon: "👨‍⚕️",
+    title: "새 상담사를 고용할 수 있어요",
+    body: "전공마다 잘 치료하는 문제가 다릅니다.",
+  },
+  tut_backstory: {
+    id: "tut_backstory",
+    icon: "📖",
+    title: "내담자의 사연을 읽어보세요",
+    body: "각자의 이야기가 담겨 있습니다.",
+  },
+  tut_displaymode: {
+    id: "tut_displaymode",
+    icon: "🔄",
+    title: "간편/상세 모드를 전환해보세요",
+    body: "상세 모드에서는 치료 효과 수치를 확인할 수 있습니다.",
+  },
+  tut_reputation: {
+    id: "tut_reputation",
+    icon: "📈",
+    title: "평판 등급이 올라가면",
+    body: "더 많은 내담자가 찾아옵니다. 좋은 치료가 좋은 평판을 만들어요.",
+  },
+  tut_upgrade: {
+    id: "tut_upgrade",
+    icon: "⬆️",
+    title: "치료실을 업그레이드하면",
+    body: "치료 효과가 높아집니다.",
+  },
+  tut_complete: {
+    id: "tut_complete",
+    icon: "🎉",
+    title: "축하합니다!",
+    body: "모든 기능이 열렸습니다. 이제 본격적으로 상담센터를 운영해보세요!",
+  },
+
+  // ── 기존 튜토리얼 (하위 호환) ──
   tutorial_start: {
     id: "tutorial_start",
     icon: "👋",
@@ -51,9 +113,7 @@ export const GUIDES: Record<string, GuideEntry> = {
     title: "격려란?",
     body: `격려는 상담보다 AP 소비가 적고, EM을 약간 줄여줍니다.
 
-상담사 없이도 할 수 있어서, 상담사가 없거나 AP가 부족할 때 유용합니다. 마음챙김실이 있으면 격려 효과가 2배가 됩니다.
-
-위기 상황(EM ≥ 80)의 내담자에게 격려로 급한 불을 끄고, 본격적인 상담은 다음 턴에 진행하는 전략도 효과적입니다.`,
+상담사 없이도 할 수 있어서, 상담사가 없거나 AP가 부족할 때 유용합니다.`,
   },
 
   first_hire: {
@@ -177,7 +237,7 @@ export const GUIDES: Record<string, GuideEntry> = {
     id: "unlock_diagnostic",
     icon: "◆",
     title: "집중치료센터가 해금되었습니다",
-    body: `턴 3부터 새로운 문제 영역(관계, 강박)의 내담자가 찾아옵니다.
+    body: `턴 13부터 새로운 문제 영역(관계, 강박)의 내담자가 찾아옵니다.
 
 집중치료센터는 EM 61~80 구간의 내담자가 머무는 층입니다. 집단상담실이나 노출치료실을 건설하면 이 구간의 치료 효율을 높일 수 있습니다.
 
@@ -188,7 +248,7 @@ export const GUIDES: Record<string, GuideEntry> = {
     id: "unlock_basement",
     icon: "▼",
     title: "거주치료센터가 개방됩니다",
-    body: `턴 5부터 트라우마, 중독 등 마음이 매우 무거운(EM 81~100) 내담자가 도착합니다.
+    body: `턴 15부터 트라우마, 중독 등 마음이 매우 무거운(EM 81~100) 내담자가 도착합니다.
 
 이들은 사고 위험이 높으므로 즉각적인 상담이 필요합니다. 트라우마초점치료, DBT 전공 상담사가 특히 효과적입니다.
 
@@ -199,7 +259,7 @@ export const GUIDES: Record<string, GuideEntry> = {
     id: "unlock_upper",
     icon: "★",
     title: "심리상담센터와 옥상하늘정원이 열립니다",
-    body: `턴 8부터 EM이 충분히 낮아진 내담자들이 심리상담센터(EM 16~35)와 옥상하늘정원(EM 0~15)으로 이동합니다.
+    body: `턴 18부터 EM이 충분히 낮아진 내담자들이 심리상담센터(EM 16~35)와 옥상하늘정원(EM 0~15)으로 이동합니다.
 
 옥상하늘정원에 도달한 내담자는 다음 턴 종료 시 자동으로 상담이 종결됩니다!
 

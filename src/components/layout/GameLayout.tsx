@@ -7,6 +7,7 @@ import StageDashboard from "@/components/stage/StageDashboard.tsx";
 import { useTheme } from "@/hooks/useTheme.ts";
 import { useGameStore } from "@/store/gameStore.ts";
 import { CHILD_STAGE_OPEN_TURN } from "@/lib/constants/crossStageConstants.ts";
+import { getTutorialConfig } from "@/lib/tutorialConfig.ts";
 
 interface GameLayoutProps {
   onEndTurn: () => void;
@@ -19,6 +20,8 @@ export default function GameLayout({ onEndTurn, onOpenMenu, children }: GameLayo
   const { theme, toggleTheme } = useTheme();
   const currentTurn = useGameStore((s) => s.currentTurn);
   const showStages = currentTurn >= CHILD_STAGE_OPEN_TURN;
+  const tutConfig = getTutorialConfig(currentTurn);
+  const showSidebar = tutConfig.showSidebar;
 
   return (
     <div className="h-screen flex flex-col bg-surface-base text-theme-primary">
@@ -31,18 +34,20 @@ export default function GameLayout({ onEndTurn, onOpenMenu, children }: GameLayo
       />
       {showStages && <StageTab />}
       <div className="flex flex-1 overflow-hidden relative">
-        {/* 데스크톱: 항상 표시 / 모바일: 오버레이 */}
-        <div
-          className={`
-            shrink-0
-            md:relative md:block
-            ${sidebarOpen ? "absolute inset-y-0 left-0 z-30 block" : "hidden md:block"}
-          `}
-        >
-          {showStages && <StageDashboard />}
-          <FloorSidebar onSelectFloor={() => setSidebarOpen(false)} />
-        </div>
-        {sidebarOpen && (
+        {/* 데스크톱: 항상 표시 / 모바일: 오버레이 / 튜토리얼: showSidebar로 제어 */}
+        {showSidebar && (
+          <div
+            className={`
+              shrink-0
+              md:relative md:block
+              ${sidebarOpen ? "absolute inset-y-0 left-0 z-30 block" : "hidden md:block"}
+            `}
+          >
+            {showStages && <StageDashboard />}
+            <FloorSidebar onSelectFloor={() => setSidebarOpen(false)} />
+          </div>
+        )}
+        {showSidebar && sidebarOpen && (
           <div
             className="absolute inset-0 z-20 bg-black/40 md:hidden"
             onClick={() => setSidebarOpen(false)}

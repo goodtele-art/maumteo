@@ -7,7 +7,9 @@ import { useSave, initNewGame } from "@/hooks/useSave.ts";
 import { useGuide } from "@/hooks/useGuide.ts";
 import { useAudioManager } from "@/hooks/useAudioManager.ts";
 import { sfxClick, sfxTurnAdvance, sfxTreatComplete, sfxDischarge, sfxCrisis, sfxBuild, sfxHire, sfxAchievement, sfxMilestone, loadAudioSettings, stopAll } from "@/lib/audio.ts";
-import { getReputationGrade } from "@/lib/constants.ts";
+import { calculateEndingData } from "@/lib/engine/endingEngine.ts";
+import type { EndingData } from "@/lib/engine/endingEngine.ts";
+import { getReputationGrade, FACILITY_TEMPLATES, ISSUE_CONFIG } from "@/lib/constants.ts";
 import GameLayout from "@/components/layout/GameLayout.tsx";
 import FloorView from "@/components/floor/FloorView.tsx";
 import TreatAction from "@/components/action/TreatAction.tsx";
@@ -34,7 +36,10 @@ import EventFlash from "@/components/effects/EventFlash.tsx";
 import EndingScreen from "@/components/stage/EndingScreen.tsx";
 import CrisisHelpPopup from "@/components/stage/CrisisHelpPopup.tsx";
 import DelegationReportModal from "@/components/stage/DelegationReportModal.tsx";
+import SpecialLetterModal from "@/components/shared/SpecialLetterModal.tsx";
+import { getSpecialLetter, hasSpecialLetter } from "@/lib/stories.ts";
 import { ENDING_A_TURN, ENDING_S_TURN, CHILD_STAGE_OPEN_TURN, INFANT_STAGE_OPEN_TURN } from "@/lib/constants/crossStageConstants.ts";
+import { getTutorialConfig, isTutorialTurn } from "@/lib/tutorialConfig.ts";
 import { getDebugTurn, applyDebugScenario } from "@/lib/debugScenarios.ts";
 import type { ParticleEmission } from "@/components/effects/ParticleCanvas.tsx";
 import type { TurnEvent, Patient, FacilityType } from "@/types/index.ts";
@@ -70,6 +75,8 @@ export default function App() {
   const prevGradeRef = useRef<string | null>(null);
   const endingShownRef = useRef<Set<string>>(new Set());
   const pendingEndingRef = useRef<"A" | "S" | null>(null);
+  const endingDataRef = useRef<EndingData | null>(null);
+  const postTurnGuidesRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (initialized.current) return;
@@ -118,6 +125,11 @@ export default function App() {
     const prevRep = useGameStore.getState().reputation;
     const prevGrade = getReputationGrade(prevRep).grade;
 
+    // 아동/영유아 내담자를 advanceTurn 전에 캡처 (종결자 비교용)
+    const prevState = useGameStore.getState();
+    const prevChildPatients = prevState.childStage?.patients ?? {};
+    const prevInfantPatients = prevState.infantStage?.patients ?? {};
+
     const result = useGameStore.getState().advanceTurn();
     save();
 
@@ -150,22 +162,88 @@ export default function App() {
       showGuide("first_floor_move");
     }
 
-    // 종결 가이드
+    // 턴 후 가이드/알림을 지연 표시하는 함수 (종결 완료 후 또는 바로)
+    const turn = result.currentTurn;
+    const prevTurn = turn - 1;
+    const showPostTurnGuides = () => {
+      setTimeout(() => {
+        const { addNotification } = useGameStore.getState();
+        // 튜토리얼 2턴: 상담사 도착 알림
+        if (turn === 2) addNotification("김마음 상담사가 센터에 합류했습니다!", "success");
+
+        const tutGuideConfig = getTutorialConfig(turn);
+        if (tutGuideConfig.guideId) showGuide(tutGuideConfig.guideId);
+
+        if (turn === 13) showGuide("unlock_diagnostic");
+        if (turn === 15) showGuide("unlock_basement");
+        if (turn === 18) showGuide("unlock_upper");
+
+        for (const [, tpl] of Object.entries(FACILITY_TEMPLATES)) {
+          if (tpl.unlockTurn === turn && tpl.unlockTurn > prevTurn) {
+            addNotification(`새 시설 해금: ${tpl.label} (건설 비용 ${tpl.buildCost}G)`, "info");
+          }
+        }
+        for (const [, cfg] of Object.entries(ISSUE_CONFIG)) {
+          if (cfg.unlockTurn === turn && cfg.unlockTurn > prevTurn) {
+            addNotification(`새 문제영역 해금: ${cfg.label}`, "info");
+          }
+        }
+      }, 500);
+    };
+
+    // 스페셜 편지 체크 함수
+    const trySpecialLetter = (issue: string, name: string, backstory: string, treatmentCount: number): boolean => {
+      const isLevel3 = backstory.length >= 80;
+      if (isLevel3 && hasSpecialLetter(issue) && Math.random() < 0.5) {
+        const letter = getSpecialLetter(issue, treatmentCount);
+        if (letter) {
+          useGameStore.getState().setPendingSpecialLetter({
+            id: `sl_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            issue, patientName: name, letter, turn: prevTurn,
+          });
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // 종결자 처리
     if (result.dischargedPatients.length > 0) {
       sfxDischarge();
       setParticleEmission({ preset: "heal", x: 0.5, y: 0.4 });
       setFlashType("heal");
       setDischargeItems(result.dischargedPatients);
-      showGuide("first_discharge");
-    } else {
-      setTurnResult({ turn: result.currentTurn - 1, events: result.events });
-    }
+      // 가이드/알림은 종결 시퀀스 완료 후 표시 (handleDischargeComplete → showPostTurnGuides)
+      postTurnGuidesRef.current = showPostTurnGuides;
 
-    // 해금 안내 (기존 튜토리얼 대체)
-    const turn = result.currentTurn;
-    if (turn === 3) showGuide("unlock_diagnostic");
-    if (turn === 5) showGuide("unlock_basement");
-    if (turn === 8) showGuide("unlock_upper");
+      // 스페셜 편지 체크 (종결 시퀀스와 별도)
+      let letterSent = false;
+      for (const dp of result.dischargedPatients) {
+        if (letterSent) break;
+        letterSent = trySpecialLetter(dp.patient.dominantIssue, dp.patient.name, dp.patient.backstory, dp.patient.treatmentCount);
+      }
+      if (!letterSent) {
+        const curChildPatients = useGameStore.getState().childStage?.patients ?? {};
+        for (const [id, patient] of Object.entries(prevChildPatients)) {
+          if (letterSent) break;
+          if (!curChildPatients[id]) {
+            letterSent = trySpecialLetter(patient.dominantIssue, patient.name, patient.backstory, patient.treatmentCount);
+          }
+        }
+      }
+      if (!letterSent) {
+        const curInfantPatients = useGameStore.getState().infantStage?.patients ?? {};
+        for (const [id, patient] of Object.entries(prevInfantPatients)) {
+          if (letterSent) break;
+          if (!curInfantPatients[id]) {
+            letterSent = trySpecialLetter(patient.dominantIssue, patient.name, patient.backstory, patient.treatmentCount);
+          }
+        }
+      }
+    } else {
+      setTurnResult({ turn: prevTurn, events: result.events });
+      postTurnGuidesRef.current = showPostTurnGuides; // TurnResult 닫힌 후 실행
+    }
 
     // Stage 오픈 안내 (오픈 턴 직후)
     if (turn === CHILD_STAGE_OPEN_TURN) showGuide("child_stage_open");
@@ -180,13 +258,34 @@ export default function App() {
     prevGradeRef.current = newGrade;
 
     // ── 엔딩 체크 (턴 결과 확인 후 표시하기 위해 지연) ──
+    const computeEnding = (eType: "A" | "S") => {
+      const es = useGameStore.getState();
+      endingDataRef.current = calculateEndingData(
+        eType,
+        {
+          reputation: es.reputation,
+          gold: es.gold,
+          counselors: es.counselors,
+          facilities: es.facilities,
+          patients: es.patients,
+          childStage: es.childStage,
+          infantStage: es.infantStage,
+        },
+        es.lifetimeStats,
+        es.actionStats,
+        es.eventChoiceHistory,
+        es.unlockedAchievementIds.length,
+      );
+    };
     if (result.currentTurn === ENDING_A_TURN + 1 && !endingShownRef.current.has("A")) {
       endingShownRef.current.add("A");
       pendingEndingRef.current = "A";
+      computeEnding("A");
     }
     if (result.currentTurn === ENDING_S_TURN + 1 && !endingShownRef.current.has("S")) {
       endingShownRef.current.add("S");
       pendingEndingRef.current = "S";
+      computeEnding("S");
     }
 
     // ── Stage 특수 이벤트 트리거 ──
@@ -213,10 +312,10 @@ export default function App() {
       }
     }
 
-    // 이벤트 롤
+    // 이벤트 롤 (튜토리얼 중에는 이벤트 비활성)
     const hasChild = storeForStage.childStage !== null;
     const hasInfant = storeForStage.infantStage !== null;
-    const event = rollForEvent(result.currentTurn, undefined, hasChild, hasInfant);
+    const event = isTutorialTurn(result.currentTurn) ? null : rollForEvent(result.currentTurn, undefined, hasChild, hasInfant);
     if (event) {
       const storeNow = useGameStore.getState();
       const pending: import("@/types/index.ts").PendingEvent = { event: { ...event }, turn: result.currentTurn };
@@ -293,7 +392,13 @@ export default function App() {
       const entry = lastLog[lastLog.length - 1]!;
       setTurnResult({ turn: entry.turn, events: entry.events });
     }
-  }, []);
+    // 종결 시퀀스 완료 후 가이드/알림 표시
+    if (postTurnGuidesRef.current) {
+      postTurnGuidesRef.current();
+      postTurnGuidesRef.current = null;
+    }
+    showGuide("first_discharge");
+  }, [showGuide]);
 
   const [treatPatientId, setTreatPatientId] = useState<string | null>(null);
 
@@ -399,6 +504,7 @@ export default function App() {
     setEndingType(null);
     setShowCrisisHelp(false);
     endingShownRef.current.clear();
+    endingDataRef.current = null;
     setShowIntro(true);
   }, [reset, resetGuides]);
 
@@ -406,7 +512,7 @@ export default function App() {
   if (showIntro) {
     return (
       <LazyMotion features={domAnimation}>
-        <IntroScreen onStart={() => { setShowIntro(false); showGuide("tutorial_start"); }} />
+        <IntroScreen onStart={() => { setShowIntro(false); showGuide("tut_welcome"); }} />
       </LazyMotion>
     );
   }
@@ -450,7 +556,11 @@ export default function App() {
           events={turnResult.events}
           onClose={() => {
             setTurnResult(null);
-            // 턴 결과 확인 후 대기 중인 엔딩 표시
+            // 턴 결과 확인 후 → 가이드/알림 표시 → 엔딩
+            if (postTurnGuidesRef.current) {
+              postTurnGuidesRef.current();
+              postTurnGuidesRef.current = null;
+            }
             if (pendingEndingRef.current) {
               setEndingType(pendingEndingRef.current);
               pendingEndingRef.current = null;
@@ -494,16 +604,9 @@ export default function App() {
         />
       )}
 
-      {endingType && (
+      {endingType && endingDataRef.current && (
         <EndingScreen
-          endingType={endingType}
-          stats={{
-            totalDischarges: 0,
-            avgTreatmentTurns: 0,
-            incidents: 0,
-            reputation: useGameStore.getState().reputation,
-            gold: useGameStore.getState().gold,
-          }}
+          endingData={endingDataRef.current}
           onContinue={() => setEndingType(null)}
           onNewGame={handleNewGame}
         />
@@ -511,6 +614,7 @@ export default function App() {
 
       {showCrisisHelp && <CrisisHelpPopup onClose={() => setShowCrisisHelp(false)} />}
       <DelegationReportModal />
+      <SpecialLetterModal />
 
       <EventModal />
       <GuideModal guide={currentGuide} onDismiss={dismissGuide} />

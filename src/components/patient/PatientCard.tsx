@@ -5,8 +5,10 @@ import CharacterAvatar from "@/components/shared/CharacterAvatar.tsx";
 import { ISSUE_LABELS } from "@/lib/engine/patient.ts";
 import { CHILD_ISSUE_LABELS } from "@/lib/engine/childPatient.ts";
 import { INFANT_ISSUE_LABELS } from "@/lib/engine/infantPatient.ts";
+import { ISSUE_EMOJI } from "@/lib/assetMap.ts";
 import { useGameStore } from "@/store/gameStore.ts";
 import { AP_COST } from "@/lib/constants.ts";
+import { getTutorialConfig } from "@/lib/tutorialConfig.ts";
 import type { Patient } from "@/types/index.ts";
 
 /** 모든 스테이지의 문제영역 라벨 통합 */
@@ -60,17 +62,22 @@ interface PatientCardProps {
 
 export default function PatientCard({ patient, onTreat, onEncourage }: PatientCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const displayMode = useGameStore((s) => s.displayMode);
   const adultAp = useGameStore((s) => s.ap);
   const activeStage = useGameStore((s) => s.activeStage);
   const childStage = useGameStore((s) => s.childStage);
   const infantStage = useGameStore((s) => s.infantStage);
+  const currentTurn = useGameStore((s) => s.currentTurn);
   const ap = activeStage === "child" && childStage ? childStage.ap
     : activeStage === "infant" && infantStage ? infantStage.ap
     : adultAp;
+  const tutConfig = getTutorialConfig(currentTurn);
+  const tutNewFeats = tutConfig.newFeatures as string[];
   const borderColor = getCardBorderColor(patient.em);
   const isCrisis = patient.em >= 80;
   const canTreat = ap >= AP_COST.treat;
   const canEncourage = ap >= AP_COST.encourage;
+  const isBeginner = displayMode === "beginner";
 
   return (
     <m.div
@@ -92,6 +99,7 @@ export default function PatientCard({ patient, onTreat, onEncourage }: PatientCa
               <span
                 className={`text-xs px-1.5 py-0.5 rounded shrink-0 ${ISSUE_COLORS[patient.dominantIssue] ?? ""}`}
               >
+                {isBeginner && ISSUE_EMOJI[patient.dominantIssue] ? `${ISSUE_EMOJI[patient.dominantIssue]} ` : ""}
                 {ALL_ISSUE_LABELS[patient.dominantIssue] ?? patient.dominantIssue}
               </span>
               {Boolean((patient as unknown as Record<string, unknown>).assessed) && (
@@ -104,7 +112,9 @@ export default function PatientCard({ patient, onTreat, onEncourage }: PatientCa
               <button
                 onClick={() => canEncourage && onEncourage(patient.id)}
                 disabled={!canEncourage}
-                className={`text-xs px-2.5 py-1.5 font-medium rounded-lg transition-colors ${
+                className={`min-h-[44px] font-medium rounded-lg transition-colors ${
+                  tutNewFeats.includes("encourage") ? "text-base px-4 py-3 new-feature-glow" : "text-xs px-2.5 py-1.5"
+                } ${
                   canEncourage
                     ? "bg-teal-700 text-white hover:bg-teal-600"
                     : "bg-surface-disabled text-theme-disabled cursor-not-allowed"
@@ -122,7 +132,9 @@ export default function PatientCard({ patient, onTreat, onEncourage }: PatientCa
                   }
                 }}
                 disabled={!canTreat}
-                className={`text-sm px-3 py-1.5 font-medium rounded-lg transition-colors shadow-sm ${
+                className={`min-h-[44px] font-medium rounded-lg transition-colors shadow-sm ${
+                  tutNewFeats.includes("treat") ? "text-base px-4 py-3 new-feature-glow" : "text-sm px-3 py-1.5"
+                } ${
                   canTreat
                     ? "bg-floor-counseling text-white hover:bg-sky-600"
                     : "bg-surface-disabled text-theme-disabled cursor-not-allowed"
@@ -135,18 +147,29 @@ export default function PatientCard({ patient, onTreat, onEncourage }: PatientCa
           </div>
 
           {/* EM 바 */}
-          <EMBar em={patient.em} size="sm" />
+          <EMBar em={patient.em} size="sm" showValue={!isBeginner} />
 
           {/* 라포, 상담 횟수, 사연 */}
           <div className="flex items-center gap-3 mt-1 text-xs text-theme-tertiary">
-            <span>라포 {patient.rapport}</span>
-            <span>상담 {patient.treatmentCount}회</span>
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="ml-auto text-theme-tertiary hover:text-theme-primary"
-            >
-              {expanded ? "접기" : "사연"}
-            </button>
+            {!isBeginner && <span>라포 {patient.rapport}</span>}
+            {!isBeginner && <span>상담 {patient.treatmentCount}회</span>}
+            {(() => {
+              const turn = useGameStore.getState().currentTurn;
+              const tut = getTutorialConfig(turn);
+              const isBackstoryNew = (tut.newFeatures as string[]).includes("backstory");
+              return (
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className={`ml-auto hover:text-theme-primary ${
+                    isBackstoryNew
+                      ? "new-feature-glow text-sm font-bold text-violet-400 px-2 py-1 rounded-lg"
+                      : "text-theme-tertiary"
+                  }`}
+                >
+                  {expanded ? "접기" : "📖 사연"}
+                </button>
+              );
+            })()}
           </div>
         </div>
       </div>

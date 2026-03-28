@@ -1,15 +1,18 @@
 import type { StageId } from "@/types/stage.ts";
 
-// ── 전체 턴 구조 (90턴) ──
+// ── 튜토리얼 ──
+export const TUTORIAL_END_TURN = 10; // 1~10턴: 튜토리얼, 11턴부터 본게임
+
+// ── 전체 턴 구조 (100턴: 튜토리얼 10 + Stage1 30 + Stage2 30 + Stage3 30) ──
 export const STAGE_TURN_RANGES: Record<StageId, { start: number; end: number }> = {
-  adult: { start: 1, end: 30 },
-  child: { start: 31, end: 60 },
-  infant: { start: 61, end: 90 },
+  adult: { start: 1, end: 40 },
+  child: { start: 41, end: 70 },
+  infant: { start: 71, end: 100 },
 };
 
 // ── 센터 오픈 턴 ──
-export const CHILD_STAGE_OPEN_TURN = 31;
-export const INFANT_STAGE_OPEN_TURN = 61;
+export const CHILD_STAGE_OPEN_TURN = 41;
+export const INFANT_STAGE_OPEN_TURN = 71;
 
 // ── 평판 등급 (S등급 추가) ──
 export interface ExtendedReputationGrade {
@@ -61,8 +64,8 @@ export const VICE_DIRECTOR_UNLOCK_ADULT = 40;
 export const VICE_DIRECTOR_UNLOCK_CHILD = 70;
 
 // ── 엔딩 분기 ──
-export const ENDING_A_TURN = 60;
-export const ENDING_S_TURN = 90;
+export const ENDING_A_TURN = 70;
+export const ENDING_S_TURN = 100;
 
 // ── 위기 시 도움 정보 ──
 export const CRISIS_HELP_INFO = {

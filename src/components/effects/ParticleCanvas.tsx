@@ -22,7 +22,8 @@ export type ParticlePreset =
   | "reputation"
   | "parent_active"
   | "golden_time"
-  | "ending";
+  | "ending"
+  | "encourage";
 
 interface PresetConfig {
   count: number;
@@ -103,6 +104,15 @@ const PRESETS: Record<ParticlePreset, PresetConfig> = {
     life: () => 100 + Math.random() * 60,
     gravity: 0.01,
     shape: "star",
+  },
+  encourage: {
+    count: 20,
+    color: () => `hsl(${340 + Math.random() * 30}, 75%, ${65 + Math.random() * 15}%)`,
+    speed: () => 0.3 + Math.random() * 0.7,
+    size: () => 3 + Math.random() * 3,
+    life: () => 60 + Math.random() * 30,
+    gravity: -0.02,
+    shape: "heart",
   },
 };
 

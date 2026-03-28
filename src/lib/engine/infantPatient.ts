@@ -2,6 +2,7 @@ import type { InfantPatient, InfantIssue } from "@/types/infant/index.ts";
 import { INFANT_ISSUE_CONFIG } from "@/lib/constants/infantConstants.ts";
 import { createMilestones } from "@/lib/engine/milestone.ts";
 import { getInfantFloorForEM } from "./infantEngine.ts";
+import { getBackstory, getStoryLevel, getRecoveryStory } from "@/lib/stories.ts";
 
 // ── 이름 생성 ──
 const SURNAMES = [
@@ -125,11 +126,15 @@ export function generateInfantPatient(turn: number, idSeed: number): InfantPatie
   const name = generateInfantName(nameSeed);
   const age = generateAgeMonths(nameSeed + idSeed * 7);
 
-  const backstories = INFANT_BACKSTORIES[issue];
-  const backstory = backstories[idSeed % backstories.length]!;
-
   const em = config.emStartMin +
     Math.floor(Math.random() * (config.emStartMax - config.emStartMin + 1));
+
+  // 새 스토리 시스템 우선, 데이터 미생성 시 기존 INFANT_BACKSTORIES 폴백
+  let backstory = getBackstory(issue, getStoryLevel(em), idSeed);
+  if (!backstory) {
+    const fallback = INFANT_BACKSTORIES[issue];
+    backstory = fallback[idSeed % fallback.length]!;
+  }
 
   return {
     id: `ip_${turn}_${idSeed}`,
@@ -152,6 +157,12 @@ export function generateInfantPatient(turn: number, idSeed: number): InfantPatie
 
 // ── 종결 메시지 ──
 export function getInfantDischargeMessage(patient: InfantPatient): string {
+  // backstory 길이로 level 추정 (종결 시 EM이 이미 낮아 getStoryLevel 부정확)
+  const level = patient.backstory.length >= 80 ? "level3"
+    : patient.backstory.length >= 40 ? "level2" : "level1";
+  const recovery = getRecoveryStory(patient.dominantIssue, level, patient.treatmentCount);
+  if (recovery) return recovery;
+
   const messages = INFANT_DISCHARGE_MESSAGES[patient.dominantIssue];
   const idx = Math.abs(patient.id.length) % messages.length;
   return messages[idx]!;

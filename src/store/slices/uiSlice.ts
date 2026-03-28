@@ -3,17 +3,33 @@ import type { GameStore } from "../gameStore.ts";
 import type { FloorId, ModalType, Notification } from "@/types/index.ts";
 import type { DelegationReport } from "@/types/delegation.ts";
 
+export type DisplayMode = "beginner" | "expert";
+
+export interface CollectedLetter {
+  id: string;
+  issue: string;
+  patientName: string;
+  letter: string;
+  turn: number;
+}
+
 export interface UiSlice {
   selectedFloorId: FloorId;
   activeModal: ModalType | null;
   notifications: Notification[];
   delegationReport: DelegationReport | null;
+  displayMode: DisplayMode;
+  specialLetters: CollectedLetter[];
+  pendingSpecialLetter: CollectedLetter | null;
   selectFloor: (floorId: FloorId) => void;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
   addNotification: (message: string, type: Notification["type"]) => void;
   dismissNotification: (id: string) => void;
   setDelegationReport: (report: DelegationReport | null) => void;
+  toggleDisplayMode: () => void;
+  setPendingSpecialLetter: (letter: CollectedLetter | null) => void;
+  collectSpecialLetter: (letter: CollectedLetter) => void;
 }
 
 export const createUiSlice: StateCreator<
@@ -26,6 +42,9 @@ export const createUiSlice: StateCreator<
   activeModal: null,
   notifications: [],
   delegationReport: null,
+  displayMode: "beginner" as DisplayMode,
+  specialLetters: [],
+  pendingSpecialLetter: null,
 
   selectFloor: (floorId) => set({ selectedFloorId: floorId }),
 
@@ -47,4 +66,15 @@ export const createUiSlice: StateCreator<
     })),
 
   setDelegationReport: (report) => set({ delegationReport: report }),
+
+  toggleDisplayMode: () =>
+    set((s) => ({ displayMode: s.displayMode === "beginner" ? "expert" : "beginner" })),
+
+  setPendingSpecialLetter: (letter) => set({ pendingSpecialLetter: letter }),
+
+  collectSpecialLetter: (letter) =>
+    set((s) => ({
+      specialLetters: [...s.specialLetters, letter],
+      pendingSpecialLetter: null,
+    })),
 });

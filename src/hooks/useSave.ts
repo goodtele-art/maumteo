@@ -6,12 +6,13 @@ import {
   SAVE_KEY,
   INITIAL_GOLD,
   INITIAL_REPUTATION,
-  AP_BASE,
 } from "@/lib/constants.ts";
+import { INITIAL_LIFETIME_STATS } from "@/store/slices/lifetimeStatsSlice.ts";
 
 function initNewGame(): void {
   const s = useGameStore.getState();
-  s.setResources({ gold: INITIAL_GOLD, reputation: INITIAL_REPUTATION, ap: AP_BASE, maxAp: AP_BASE });
+  // 튜토리얼 시작: AP 1, 상담사 0명, 시설 0개, 내담자 1명(불안)
+  s.setResources({ gold: INITIAL_GOLD, reputation: INITIAL_REPUTATION, ap: 1, maxAp: 1 });
   s.setPatients({});
   s.setFacilities({});
   s.setCounselors({});
@@ -26,12 +27,24 @@ function initNewGame(): void {
     infantStage: null,
   });
 
-  const p1 = generatePatient(1, 1);
-  const p2 = generatePatient(1, 2);
+  // LifetimeStats / ActionStats / EventChoiceHistory 초기화
+  s.resetLifetimeStats();
+  useGameStore.setState({
+    actionStats: {
+      treatCount: 0, encourageCount: 0,
+      treatOptimalCount: 0, treatSubCount: 0, treatMismatchCount: 0,
+      buildCount: 0, upgradeCount: 0,
+    },
+    eventChoiceHistory: [],
+  });
+
+  // 초기 내담자 1명 (불안 강제 배정)
+  const p1 = generatePatient(1, 1, "anxiety");
+  // 튜토리얼 1턴: EM을 심리치료센터 범위(36~60)로 고정
+  if (p1.em > 60) p1.em = 55;
+  if (p1.em < 36) p1.em = 45;
+  p1.currentFloorId = "counseling";
   s.addPatient(p1);
-  s.addPatient(p2);
-  s.hireCounselor("김마음", "cbt", 3, 25);
-  s.buildFacility("individual_room", 0);
 }
 
 export function useSave() {
@@ -79,6 +92,15 @@ export function useSave() {
           psychologists: data.infantStage.psychologists ?? {},
         } : null,
         viceDirector: data.viceDirector ?? null,
+        specialLetters: data.specialLetters ?? [],
+        // DNA 리포트 통계 복원
+        lifetimeStats: data.lifetimeStats ?? { ...INITIAL_LIFETIME_STATS, issueDischarges: {} },
+        actionStats: data.actionStats ?? {
+          treatCount: 0, encourageCount: 0,
+          treatOptimalCount: 0, treatSubCount: 0, treatMismatchCount: 0,
+          buildCount: 0, upgradeCount: 0,
+        },
+        eventChoiceHistory: data.eventChoiceHistory ?? [],
       });
 
       return true;

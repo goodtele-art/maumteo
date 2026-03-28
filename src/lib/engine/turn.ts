@@ -18,10 +18,12 @@ import {
   INCIDENT_REPUTATION_LOSS,
   INCIDENT_THRESHOLD,
   ISSUE_CONFIG,
+  FLOORS,
 } from "@/lib/constants.ts";
 import { clampEM, getFloorForEM } from "./em.ts";
 import { calcIncome, calcUpkeep } from "./economy.ts";
 import { generatePatient, checkDischarge, getDischargeMessage } from "./patient.ts";
+import { getTutorialConfig, isTutorialTurn } from "@/lib/tutorialConfig.ts";
 
 const INCIDENT_MESSAGES = [
   "내담자가 극심한 스트레스로 시설을 파손했습니다.",
@@ -49,6 +51,7 @@ export function processTurn(state: GameState): TurnResult {
   const events: TurnEvent[] = [];
   const dischargedPatients: Array<{ patient: Patient; message: string }> = [];
   const nextTurn = state.currentTurn + 1;
+  const tutConfig = getTutorialConfig(nextTurn);
 
   // 수입/지출
   const income = calcIncome(state.patients, state.reputation);
@@ -94,7 +97,20 @@ export function processTurn(state: GameState): TurnResult {
 
     const emAfter = clampEM(p.em + increase + relapseIncrease);
     p.em = emAfter;
-    p.currentFloorId = getFloorForEM(emAfter);
+    // 튜토리얼 중: EM이 해금된 층 범위를 넘으면 최대 해금 층에 유지
+    if (isTutorialTurn(nextTurn)) {
+      const unlockedFloors = FLOORS.filter((f) => f.unlockTurn <= nextTurn);
+      if (unlockedFloors.length > 0) {
+        const maxEm = Math.max(...unlockedFloors.map((f) => f.emRange[1]));
+        p.em = Math.min(p.em, maxEm);
+      } else {
+        // 해금된 층이 없으면 심리치료센터(36~60) 범위로 고정
+        p.em = Math.min(p.em, 60);
+      }
+      p.currentFloorId = "counseling";
+    } else {
+      p.currentFloorId = getFloorForEM(emAfter);
+    }
 
     if (emAfter !== emBefore) {
       events.push({
@@ -119,7 +135,10 @@ export function processTurn(state: GameState): TurnResult {
       });
       reputation = Math.max(0, reputation - INCIDENT_REPUTATION_LOSS);
       p.em = clampEM(INCIDENT_THRESHOLD - 5);
-      p.currentFloorId = getFloorForEM(p.em);
+      if (isTutorialTurn(nextTurn)) {
+        p.em = Math.min(p.em, 60);
+      }
+      p.currentFloorId = isTutorialTurn(nextTurn) ? "counseling" as typeof p.currentFloorId : getFloorForEM(p.em);
     }
   }
 
@@ -154,13 +173,23 @@ export function processTurn(state: GameState): TurnResult {
       type: "incident",
       patientId: "",
       reputationLoss: OVERCROWDED_REPUTATION_PENALTY,
-      message: `정원 초과(${currentCount}/${capacity})로 평판이 하락했습니다.`,
+      message: `정원 초과(${currentCount}/${capacity})로 평판이 하락했습니다. 💡 상담사를 추가 고용하면 한 턴에 더 많은 내담자를 상담할 수 있고, 시설을 건설하면 정원이 늘어납니다.`,
     });
   } else {
-    const newPatientCount = Math.min(
+    let newPatientCount = Math.min(
       PATIENTS_PER_TURN_BASE + Math.floor(reputation / 20),
       capacity - currentCount,
     );
+
+    // 튜토리얼 중 신규 환자 수 제한
+    if (isTutorialTurn(nextTurn)) {
+      const tutMaxPatients = tutConfig.maxPatients;
+      const totalAfter = currentCount + newPatientCount;
+      if (totalAfter > tutMaxPatients) {
+        newPatientCount = Math.max(0, tutMaxPatients - currentCount);
+      }
+    }
+
     for (let i = 0; i < newPatientCount; i++) {
       const newPatient = generatePatient(nextTurn, nextTurn * 100 + i);
       patients[newPatient.id] = newPatient;
@@ -200,7 +229,12 @@ export function processTurn(state: GameState): TurnResult {
   }
 
   const counselorCount = Object.keys(state.counselors).length;
-  const maxAp = AP_BASE + counselorCount * AP_PER_COUNSELOR;
+  let maxAp = AP_BASE + counselorCount * AP_PER_COUNSELOR;
+
+  // 튜토리얼 AP 제한
+  if (isTutorialTurn(nextTurn)) {
+    maxAp = Math.min(maxAp, tutConfig.maxAp);
+  }
 
   const entry: TurnLogEntry = { turn: state.currentTurn, events };
   const turnLog = [...state.turnLog, entry].slice(-MAX_HISTORY_TURNS);

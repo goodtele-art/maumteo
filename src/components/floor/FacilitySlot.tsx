@@ -5,6 +5,8 @@ import { FACILITY_TEMPLATES } from "@/lib/constants.ts";
 import { CHILD_FACILITY_TEMPLATES } from "@/lib/constants/childConstants.ts";
 import { INFANT_FACILITY_TEMPLATES } from "@/lib/constants/infantConstants.ts";
 import FacilityIllustration from "@/components/shared/FacilityIllustration.tsx";
+import { useGameStore } from "@/store/gameStore.ts";
+import { getTutorialConfig } from "@/lib/tutorialConfig.ts";
 
 /** 모든 스테이지 시설 템플릿 통합 조회 */
 function getTemplate(type: string): { label: string; effect: string; description?: string } | null {
@@ -67,15 +69,19 @@ export default function FacilitySlot({
           <div className="flex items-center justify-between gap-1">
             <div className="text-sm font-medium truncate">{template.label}</div>
             <div className="flex gap-1 shrink-0">
-              {canUpgrade && onUpgrade && (
-                <button
-                  onClick={() => onUpgrade(facility.id)}
-                  className="text-xs px-2 py-1 bg-amber-900/30 text-amber-400 rounded hover:bg-amber-900/50 transition-colors"
-                  title={`업그레이드 비용: ${Math.ceil(facility.buildCost * 0.5 * facility.level)}골드`}
-                >
-                  ⬆
-                </button>
-              )}
+              {canUpgrade && onUpgrade && (() => {
+                const turn = useGameStore.getState().currentTurn;
+                const isUpgradeNew = (getTutorialConfig(turn).newFeatures as string[]).includes("upgrade");
+                return (
+                  <button
+                    onClick={() => onUpgrade(facility.id)}
+                    className={`text-xs px-2 py-1 bg-amber-900/30 text-amber-400 rounded hover:bg-amber-900/50 transition-colors ${isUpgradeNew ? "new-feature-glow" : ""}`}
+                    title={`업그레이드 비용: ${Math.ceil(facility.buildCost * 0.5 * facility.level)}골드`}
+                  >
+                    ⬆
+                  </button>
+                );
+              })()}
               {onDemolish && (
                 <button
                   onClick={() => setShowDemolishConfirm(true)}

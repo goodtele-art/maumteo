@@ -3,8 +3,11 @@ import type { GameState, SaveData } from "@/types/index.ts";
 import type { Patient } from "@/types/patient.ts";
 import type { Facility } from "@/types/facility.ts";
 import type { Counselor } from "@/types/counselor.ts";
+import type { LifetimeStats } from "@/store/slices/lifetimeStatsSlice.ts";
+import type { ActionStats } from "@/store/slices/turnSlice.ts";
+import type { EventChoiceRecord } from "@/store/slices/eventSlice.ts";
 
-export function serialize(state: GameState & { activeStage?: string; childStage?: unknown; infantStage?: unknown; viceDirector?: unknown }): string {
+export function serialize(state: GameState & { activeStage?: string; childStage?: unknown; infantStage?: unknown; viceDirector?: unknown; specialLetters?: unknown[]; lifetimeStats?: LifetimeStats; actionStats?: ActionStats; eventChoiceHistory?: EventChoiceRecord[] }): string {
   const data: SaveData = {
     version: 2,
     timestamp: Date.now(),
@@ -21,6 +24,10 @@ export function serialize(state: GameState & { activeStage?: string; childStage?
     childStage: (state.childStage as SaveData["childStage"]) ?? null,
     infantStage: (state.infantStage as SaveData["infantStage"]) ?? null,
     viceDirector: (state.viceDirector as SaveData["viceDirector"]) ?? null,
+    specialLetters: (state.specialLetters as SaveData["specialLetters"]) ?? [],
+    lifetimeStats: state.lifetimeStats ?? undefined,
+    actionStats: state.actionStats ?? undefined,
+    eventChoiceHistory: state.eventChoiceHistory ?? undefined,
   };
   return JSON.stringify(data);
 }

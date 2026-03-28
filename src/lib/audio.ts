@@ -7,6 +7,8 @@
  * - 볼륨 개별 제어
  */
 
+import { playProceduralBgm, stopProceduralBgm, setProceduralBgmVolume, hasProceduralTrack, getActiveProceduralTrack } from "./proceduralBgm";
+
 const BASE = import.meta.env.BASE_URL;
 
 let ctx: AudioContext | null = null;
@@ -175,6 +177,14 @@ export function sfxAchievement() {
   setTimeout(() => playTone(1047, 0.5, "triangle", 0.14, "peak"), 240);
 }
 
+/** 엔딩 팡파레 — 웅장한 C5→E5→G5→C6 상승 */
+export function sfxEndingFanfare() {
+  playTone(523, 0.35, "triangle", 0.12, "peak");
+  setTimeout(() => playTone(659, 0.35, "triangle", 0.12, "peak"), 200);
+  setTimeout(() => playTone(784, 0.4, "triangle", 0.14, "peak"), 400);
+  setTimeout(() => playTone(1047, 0.7, "triangle", 0.16, "peak"), 650);
+}
+
 // ── BGM 루프 재생 시스템 ──
 
 let currentBgm: { source: AudioBufferSourceNode; gain: GainNode; track: string } | null = null;
@@ -184,6 +194,8 @@ function updateBgmGain() {
   if (currentBgm) {
     currentBgm.gain.gain.value = bgmEnabled ? bgmVolume : 0;
   }
+  // 절차적 BGM 볼륨도 동기화
+  setProceduralBgmVolume(bgmEnabled ? bgmVolume : 0);
 }
 
 async function loadAudioBuffer(url: string): Promise<AudioBuffer | null> {
@@ -199,16 +211,37 @@ async function loadAudioBuffer(url: string): Promise<AudioBuffer | null> {
   }
 }
 
-/** BGM 트랙 재생 (크로스페이드 전환) */
+/** BGM 트랙 재생 (크로스페이드 전환, 파일 없으면 절차적 합성 폴백) */
 export async function playBgm(track: string): Promise<void> {
   if (!bgmEnabled) return;
   const url = `${BASE}assets/audio/bgm/${track}`;
 
   // 같은 트랙이면 무시
   if (currentBgm?.track === track) return;
+  if (getActiveProceduralTrack() === track) return;
 
   const buffer = await loadAudioBuffer(url);
-  if (!buffer) return; // 파일 없으면 조용히 실패
+
+  if (!buffer) {
+    // 파일 없음 → 절차적 BGM 폴백
+    // 단, 이 시점은 async 이후라 유저 제스처 콜스택이 아님
+    // 이미 절차적 BGM이 재생 중이면 그대로 유지
+    if (getActiveProceduralTrack()) return;
+    if (hasProceduralTrack(track)) {
+      if (currentBgm) {
+        const c = getCtx();
+        currentBgm.gain.gain.linearRampToValueAtTime(0, c.currentTime + 0.3);
+        const src = currentBgm.source;
+        setTimeout(() => { try { src.stop(); } catch { /* ok */ } }, 400);
+        currentBgm = null;
+      }
+      playProceduralBgm(track, bgmVolume);
+    }
+    return;
+  }
+
+  // 절차적 BGM이 재생 중이면 정지
+  stopProceduralBgm();
 
   const c = getCtx();
 
@@ -237,6 +270,7 @@ export async function playBgm(track: string): Promise<void> {
 
 /** BGM 정지 */
 export function stopBgm(): void {
+  stopProceduralBgm();
   if (!currentBgm) return;
   const c = getCtx();
   currentBgm.gain.gain.linearRampToValueAtTime(0, c.currentTime + 0.3);

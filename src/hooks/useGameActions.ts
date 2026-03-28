@@ -312,6 +312,15 @@ export function useGameActions() {
       }
     }
 
+    // DNA 리포트용 액션 통계 업데이트
+    const { incrementActionStat } = useGameStore.getState();
+    incrementActionStat("treatCount");
+    // matchMult는 calcFacilityTreatEffect 내부에서 계산됨 — 여기서 근사 판정
+    const treatMatchResult = calcFacilityTreatEffect(facility, skill, patient.rapport, specialty, patient.dominantIssue, stage);
+    if (treatMatchResult.matchMult >= 1.4) incrementActionStat("treatOptimalCount");
+    else if (treatMatchResult.matchMult >= 1.15) incrementActionStat("treatSubCount");
+    else incrementActionStat("treatMismatchCount");
+
     return {
       success: true,
       actionType: "treat" as const,
@@ -403,6 +412,10 @@ export function useGameActions() {
       }
     }
 
+    // DNA 리포트용 액션 통계
+    useGameStore.getState().incrementActionStat("encourageCount");
+    if (navigator.vibrate) navigator.vibrate(50);
+
     return {
       success: true,
       actionType: "encourage" as const,
@@ -486,6 +499,7 @@ export function useGameActions() {
     }
 
     useGameStore.getState().addNotification(`${template.label} 건설 완료!`, "success");
+    useGameStore.getState().incrementActionStat("buildCount");
     return true;
   }, []);
 
@@ -628,6 +642,7 @@ export function useGameActions() {
       `${template?.label ?? facility.type} Lv.${facility.level + 1} 업그레이드!`,
       "success",
     );
+    useGameStore.getState().incrementActionStat("upgradeCount");
     return true;
   }, []);
 
