@@ -164,7 +164,7 @@ export function getCutsceneAsset(sceneId: string): string {
 // ── 업적 뱃지 ──
 
 export function getAchievementBadge(achievementId: string): string {
-  return `${BASE}assets/ui/badge_${achievementId}.webp`;
+  return `${BASE}assets/ui/badge_${achievementId}.svg`;
 }
 
 // ── UI 아이콘 ──

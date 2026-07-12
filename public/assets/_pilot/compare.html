@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>MaumTeo 파일럿 비교 (3-way)</title>
+<style>
+:root {
+  --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+  --ok: #10b981; --warn: #f59e0b; --bad: #ef4444; --info: #6366f1;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 24px; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+h1 { margin: 0 0 8px; font-size: 24px; }
+.intro { color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+.row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+  background: var(--card); padding: 20px; border-radius: 12px; margin-bottom: 20px;
+}
+.row h2 { grid-column: 1/-1; margin: 0 0 8px; font-size: 17px; display: flex; gap: 12px; align-items: center; }
+.cell { background: #0b1220; border-radius: 8px; overflow: hidden; }
+.cell .label { padding: 6px 10px; font-size: 11px; color: var(--muted); border-bottom: 1px solid #334155; display: flex; justify-content: space-between; gap: 6px; }
+.cell .label .tag { padding: 1px 7px; border-radius: 8px; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+.cell .label .existing { background: #475569; color: #fff; }
+.cell .label .nope { background: var(--bad); color: #fff; }
+.cell .label .yes { background: var(--ok); color: #000; }
+.cell img { width: 100%; height: auto; display: block; background: #fff; }
+.notes {
+  background: var(--card); padding: 20px; border-radius: 12px; line-height: 1.7;
+}
+.notes h3 { margin-top: 0; }
+.match { color: var(--ok); font-weight: 600; }
+.diff { color: var(--bad); font-weight: 600; }
+kbd { background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>🎨 파일럿 4장 3-way 비교</h1>
+<p class="intro">
+좌: <strong>기존 에셋</strong> (스타일 기준) · 중: <strong>① 무 레퍼런스</strong> (첫 파일럿) · 우: <strong>② 레퍼런스 첨부</strong> (재생성)<br>
+④번째 컬럼이 기존과 일치하는지가 핵심.
+</p>
+
+<div class="row">
+  <h2>① 영유아 내담자 — asd_early_calm</h2>
+  <div class="cell">
+    <div class="label"><span>child_anxiety_calm.webp</span><span class="tag existing">기존</span></div>
+    <img src="../characters/patient-child/child_anxiety_calm.webp">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v1: 텍스트만</span><span class="tag nope">불일치</span></div>
+    <img src="characters/patient-infant/asd_early_calm.png">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v2: ref 첨부</span><span class="tag yes">일치</span></div>
+    <img src="characters/patient-infant/asd_early_calm_ref.png">
+  </div>
+</div>
+
+<div class="row">
+  <h2>② 영유아 시설 — infant_play</h2>
+  <div class="cell">
+    <div class="label"><span>individual_room.webp</span><span class="tag existing">기존</span></div>
+    <img src="../facilities/individual_room.webp">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v1: 텍스트만</span><span class="tag nope">불일치</span></div>
+    <img src="facilities-infant/infant_play.png">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v2: ref 첨부</span><span class="tag yes">일치</span></div>
+    <img src="facilities-infant/infant_play_ref.png">
+  </div>
+</div>
+
+<div class="row">
+  <h2>③ 영유아 층배경 — infant_bloom</h2>
+  <div class="cell">
+    <div class="label"><span>child_garden.webp</span><span class="tag existing">기존</span></div>
+    <img src="../floors-child/child_garden.webp">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v1: 텍스트만</span><span class="tag nope">불일치</span></div>
+    <img src="floors-infant/infant_bloom.png">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v2: ref 첨부</span><span class="tag yes">일치</span></div>
+    <img src="floors-infant/infant_bloom_ref.png">
+  </div>
+</div>
+
+<div class="row">
+  <h2>④ 아동 시설 — play_room</h2>
+  <div class="cell">
+    <div class="label"><span>individual_room.webp</span><span class="tag existing">기존</span></div>
+    <img src="../facilities/individual_room.webp">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v1: 텍스트만</span><span class="tag nope">불일치</span></div>
+    <img src="facilities-child/play_room.png">
+  </div>
+  <div class="cell">
+    <div class="label"><span>v2: ref 첨부</span><span class="tag yes">일치</span></div>
+    <img src="facilities-child/play_room_ref.png">
+  </div>
+</div>
+
+<div class="notes">
+<h3>✅ 결론</h3>
+<p><strong>레퍼런스 이미지 첨부 방식이 명확하게 우수.</strong></p>
+<ul>
+  <li><span class="match">v2 (ref)</span>는 기존 카툰/셀-셰이딩 스타일 + 굵은 외곽선 + vivid 색상을 정확히 재현</li>
+  <li><span class="diff">v1 (텍스트만)</span>은 watercolor 스타일로 빠져 기존과 위화감 발생</li>
+  <li>비용/속도: ref 첨부 시 ~14~17초/장 (텍스트만은 ~7~9초). 토큰 약 1.5배. 33장 ≈ <strong>$2 미만</strong></li>
+</ul>
+
+<h3>🚀 본 생성 전략</h3>
+<ol>
+  <li><strong>카테고리별 reference 매핑 확정</strong> (이 4장이 그 매핑의 검증)
+    <ul>
+      <li>patient-infant (18장) → ref: <kbd>patient-child/child_anxiety_calm.webp</kbd></li>
+      <li>facilities-child (6장) → ref: <kbd>facilities/individual_room.webp</kbd></li>
+      <li>facilities-infant (5장) → ref: <kbd>facilities/individual_room.webp</kbd></li>
+      <li>floors-infant (4장) → ref: <kbd>floors-child/child_garden.webp</kbd></li>
+    </ul>
+  </li>
+  <li>본 생성 스크립트 (33장 일괄)</li>
+  <li>PNG → WebP 변환 + <code>_pilot</code>에서 정식 위치로 이동</li>
+  <li>실패 자동 재시도 + 진행률 표시</li>
+</ol>
+</div>
+
+</body>
+</html>
